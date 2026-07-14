@@ -108,6 +108,20 @@
   .bad { margin-left: 12px; font-size: 13px; color: #b00020; }
   .hidden { display: none; }
 
+  /* teacher note — screen only, never printed for students */
+  .tnote {
+    background: var(--blue-light);
+    border-left: 3px solid var(--blue);
+    padding: 12px 16px;
+    margin-bottom: 22px;
+    border-radius: 3px;
+  }
+  .tnote-h {
+    font-size: 11px; font-variant: small-caps; letter-spacing: .6px;
+    color: var(--blue); font-weight: bold; margin-bottom: 6px;
+  }
+  .tnote p { font-size: 13px; line-height: 1.5; margin: 4px 0; }
+
   @media (max-width: 720px) {
     .app { flex-direction: column; height: auto; }
     .left { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid #e3e3e3; }
@@ -146,7 +160,12 @@
 
     <label class="lbl">Phonics level</label>
     <input type="text" id="f-phonics" placeholder="VCe, suffixes/prefixes, Greek/Latin roots…" />
+    <input type="text" id="f-ufli" placeholder="UFLI level (e.g. L54–62) — needed for Independent" style="margin-top:6px" />
     <label class="toggle"><input type="checkbox" id="f-phonicsOn" /> Phonics mode on</label>
+
+    <label class="lbl">Reading level target</label>
+    <div class="chips" id="f-target"></div>
+    <div class="hint" id="target-hint" style="margin-top:6px"></div>
 
     <label class="lbl">Mode</label>
     <select id="f-mode"></select>
@@ -229,7 +248,17 @@ const ui = {
   length: "Medium",
   goalTab: "chips",
   chips: new Set(),
+  readingTarget: "Instructional",   // "Independent" | "Instructional"
   lastConfig: null,
+};
+
+// Independent = the student decodes ~90% of words cold, unsupported.
+// Instructional = the student can read it WITH teacher support.
+const TARGET_HINTS = {
+  Independent:
+    "90% decodable cold. Only patterns at or below the student's level. Form may shift to verse to protect both the level and the ideas.",
+  Instructional:
+    "Read with teacher support. Stretch words and longer sentences allowed.",
 };
 
 /* =============================================================
@@ -254,6 +283,22 @@ function buildControls() {
     };
     length.appendChild(b);
   });
+
+  const target = document.getElementById("f-target");
+  const hintEl = document.getElementById("target-hint");
+  ["Independent", "Instructional"].forEach((t) => {
+    const b = document.createElement("button");
+    b.className = "chip" + (t === ui.readingTarget ? " on" : "");
+    b.textContent = t;
+    b.onclick = () => {
+      ui.readingTarget = t;
+      [...target.children].forEach((c) => c.classList.remove("on"));
+      b.classList.add("on");
+      hintEl.textContent = TARGET_HINTS[t];
+    };
+    target.appendChild(b);
+  });
+  hintEl.textContent = TARGET_HINTS[ui.readingTarget];
 
   const tabs = document.getElementById("f-tabs");
   [["iep", "IEP goal"], ["chips", "Skills"], ["ccss", "CCSS"]].forEach(([id, lbl]) => {
@@ -336,8 +381,10 @@ function gatherConfig() {
       name: val("f-name"), grade: val("f-grade"), age: val("f-age"),
       culture: val("f-culture"), interests: val("f-interests"),
       phonicsLevel: val("f-phonics"), phonicsOn: document.getElementById("f-phonicsOn").checked,
+      ufli: val("f-ufli"),
       comprehension: val("f-comp"),
     },
+    readingTarget: ui.readingTarget,
     mode: val("f-mode") || "Either",
     genre: val("f-genre"),
     length: ui.length,
@@ -358,6 +405,41 @@ function gatherConfig() {
 function val(id) { return document.getElementById(id).value.trim(); }
 function checked(id) { return document.getElementById(id).checked; }
 
+// ---------------------------------------------------------------------
+// INDEPENDENT LEVEL — the 90% rule, and the constraint hierarchy that
+// resolves the conflict it creates.
+// ---------------------------------------------------------------------
+function INDEPENDENT_RULES(profile) {
+  const lvl = profile.ufli || profile.phonicsLevel || "the student's stated phonics level";
+  return `INDEPENDENT LEVEL — THIS IS A HARD CONSTRAINT, NOT A PREFERENCE.
+
+The student must be able to decode this text COLD, with no teacher help, at 90% accuracy or better. Nine of every ten words must be readable using ONLY phonics patterns at or below: ${lvl}.
+
+RULES:
+- Use only phonics patterns the student has already been taught (at or below ${lvl}). Do not preview patterns above that level.
+- Prefer one-syllable words. Multisyllabic words are allowed only when every syllable uses a taught pattern, and sparingly.
+- The ONLY permitted off-level words are proper nouns — names of people and places. Everything else must be decodable.
+- Sentences: 8 words or fewer. No embedded clauses.
+- If you are unsure whether a word is decodable at this level, DO NOT USE IT. Choose a simpler word.
+
+THE CONSTRAINT HIERARCHY — when these collide, obey this order:
+NEVER YIELDS: decoding level · conceptual depth · cultural integrity · factual truth.
+YIELDS, in this order: vocabulary precision → sentence structure → FORM.
+
+What this means in practice:
+- Never simplify the IDEA to hit the level. Simplify the WORDS.
+- A concept you cannot name at this level, you can still SHOW. Example: you may not write "hydraulic system" or "inspection" at an early level — but you CAN write: "They put a pump in the car. Flip a switch — it lifts. Flip it again — it drops. Now it passes the rule." The concept survives intact; only the vocabulary changed.
+
+FORM MAY CHANGE — THIS IS PERMITTED AND EXPECTED:
+Short sentences in PROSE read as broken and babyish. Short lines in VERSE read as craft. If prose at this decoding level would come out thin, choppy, or condescending to an older reader, WRITE IT AS FREE VERSE instead — or as a list, a letter, or dialogue. Verse biography and documentary poetry are established, dignified forms for exactly this reader. Use them.
+- Attempt prose FIRST. Shift form only when prose at this level would go thin. Verse is not a shortcut — do not reach for it to avoid writing good decodable prose.
+- MODE AND FACTS DO NOT CHANGE. If nonfiction was requested, a form shift produces INFORMATIONAL VERSE — a documentary poem. It is still true. You may not invent facts, characters, or events. Poetry is not permission to fictionalize.
+- This student is ${profile.age || "an adolescent"} years old. Never write down to them. Rhythm, repetition, and white space are tools — not filler.
+
+LAYER 2 VOCABULARY:
+Words too advanced to decode (e.g. "hydraulic", "generation", "inspection") do NOT go into the body text unmarked. Keep them OUT of the text, and list them in the teacher note as words to front-load verbally. The student learns the word from the teacher, not by decoding it.`;
+}
+
 function buildPrompt(cfg, adjustment) {
   const { profile, outputs } = cfg;
   const lengthObj = LENGTHS.find((l) => l.id === cfg.length) || LENGTHS[1];
@@ -375,14 +457,22 @@ function buildPrompt(cfg, adjustment) {
 - Cultural background: ${profile.culture || "(n/a)"}
 - Interests: ${profile.interests || "(n/a)"}
 - Phonics level: ${profile.phonicsLevel || "(n/a)"}${profile.phonicsOn ? " (PHONICS MODE ON)" : ""}
+- UFLI level: ${profile.ufli || "(not given)"}
 - Comprehension level: ${profile.comprehension || "(n/a)"}`);
   p.push(`TEXT TO PRODUCE:
 - Mode: ${cfg.mode}${cfg.genre ? `\n- Genre: ${cfg.genre}` : ""}
-- Length: about ${lengthObj.target} words (${lengthObj.words}).`);
+- Length: about ${lengthObj.target} words (${lengthObj.words}).
+- READING LEVEL TARGET: ${cfg.readingTarget}`);
   if (goalText) p.push(`LEARNING GOAL: ${goalText}`);
 
+  if (cfg.readingTarget === "Independent") {
+    p.push(INDEPENDENT_RULES(profile));
+  } else {
+    p.push(`INSTRUCTIONAL LEVEL: This text will be read WITH teacher support. Stretch vocabulary and longer sentences are allowed. The student is not expected to decode every word unaided.`);
+  }
+
   if (profile.phonicsOn && profile.phonicsLevel) {
-    p.push(`PHONICS MODE: Decoding must stay near the phonics level "${profile.phonicsLevel}". Seed several words that fit that pattern naturally into the text. Italicize those phonics-target words by wrapping each in *single asterisks*. Do not force the pattern at the cost of meaning.`);
+    p.push(`PHONICS TARGET: Seed words fitting the pattern "${profile.phonicsLevel}" naturally into the text. Italicize those phonics-target words by wrapping each in *single asterisks*.`);
   } else {
     p.push(`VOCABULARY: Surface a small number of Academic Word List (AWL) words that fit the topic. Italicize them by wrapping each in *single asterisks*.`);
   }
@@ -404,7 +494,11 @@ List the italicized target words from the text, one per line, numbered like "1. 
   if (outputs.comprehension) {
     sections.push("===COMPREHENSION===");
     fmt.push(`===COMPREHENSION===
-${comprehensionLogic(cfg, goalText)} Number each question. 3 to 5 questions. No answer lines.`);
+${comprehensionLogic(cfg, goalText)} Number each question. 3 to 5 questions. No answer lines.${
+      cfg.readingTarget === "Independent"
+        ? " CRITICAL: the QUESTIONS must be decodable at the same level as the text. Do not use a word in a question that you were not allowed to use in the text. A student who cannot read the question cannot answer it."
+        : ""
+    }`);
   }
   if (outputs.inference) {
     sections.push("===INFERENCE===");
@@ -414,6 +508,14 @@ ${comprehensionLogic(cfg, goalText)} Number each question. 3 to 5 questions. No 
   if (outputs.twr) {
     sections.push("===TWR===");
     fmt.push(twrInstructions(profile));
+  }
+  if (cfg.readingTarget === "Independent") {
+    sections.push("===TEACHERNOTE===");
+    fmt.push(`===TEACHERNOTE===
+A short note FOR THE TEACHER (never shown to the student). Exactly these three lines:
+FORM: name the form you used (prose, free verse, letter, dialogue) and, in one sentence, why — especially if you shifted away from prose.
+FRONT-LOAD: list the Layer 2 words you kept OUT of the text and that the teacher should teach verbally before reading (e.g. hydraulic, generation). If none, write "none".
+WATCH: one sentence on what to watch for as this student reads.`);
   }
   p.push(fmt.join("\n\n"));
   p.push(`Sections to include, in this order: ${sections.join(" ")}`);
@@ -479,9 +581,9 @@ WHY:`;
    PARSE
    ============================================================= */
 function parseSections(raw) {
-  const out = { text: "", wordgrid: "", comprehension: "", inference: "", twr: "" };
+  const out = { text: "", wordgrid: "", comprehension: "", inference: "", twr: "", teachernote: "" };
   if (!raw) return out;
-  const map = { TEXT: "text", WORDGRID: "wordgrid", COMPREHENSION: "comprehension", INFERENCE: "inference", TWR: "twr" };
+  const map = { TEXT: "text", WORDGRID: "wordgrid", COMPREHENSION: "comprehension", INFERENCE: "inference", TWR: "twr", TEACHERNOTE: "teachernote" };
   const parts = raw.split(/===\s*([A-Z]+)\s*===/g);
   for (let i = 1; i < parts.length; i += 2) {
     const key = map[parts[i].trim()];
@@ -494,6 +596,7 @@ function numberedLines(block) {
   return block.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => l.replace(/^\s*\d+[\.\)]\s*/, ""));
 }
 function escapeHtml(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase(); }
 function italicHtml(s) { return escapeHtml(s).replace(/\*([^*]+)\*/g, "<em>$1</em>"); }
 
 /* =============================================================
@@ -524,9 +627,11 @@ function sectionsHtml(parsed, opts) {
       ? `<h2 style="font-size:21px;margin:0 0 14px;">${escapeHtml(title)}</h2>`
       : `<div class="title">${escapeHtml(title)}</div>`;
     paras.forEach((para) => {
+      // Preserve internal line breaks — verse must render as verse, not collapse to prose.
+      const body = italicHtml(para).replace(/\n/g, "<br>");
       html += inline
-        ? `<p style="font-size:16px;line-height:1.7;margin:0 0 14px;">${italicHtml(para.replace(/\n/g, " "))}</p>`
-        : `<p class="para">${italicHtml(para.replace(/\n/g, " "))}</p>`;
+        ? `<p style="font-size:16px;line-height:1.7;margin:0 0 14px;">${body}</p>`
+        : `<p class="para">${body}</p>`;
     });
   }
 
@@ -646,7 +751,20 @@ async function generate(adjustment) {
 }
 
 function renderOutput(cfg) {
-  document.getElementById("output").innerHTML = sectionsHtml(currentParsed, { inline: false });
+  const note = currentParsed.teachernote
+    ? `<div class="tnote">
+         <div class="tnote-h">Teacher note — not printed for students</div>
+         ${currentParsed.teachernote
+           .split("\n").map((l) => l.trim()).filter(Boolean)
+           .map((l) => {
+             const m = l.match(/^(FORM|FRONT-LOAD|WATCH):\s*(.*)$/i);
+             return m
+               ? `<p><strong>${escapeHtml(cap(m[1]))}:</strong> ${escapeHtml(m[2])}</p>`
+               : `<p>${escapeHtml(l)}</p>`;
+           }).join("")}
+       </div>`
+    : "";
+  document.getElementById("output").innerHTML = note + sectionsHtml(currentParsed, { inline: false });
 
   // action bar
   const bar = document.getElementById("actionbar");
