@@ -159,8 +159,9 @@
     <input type="text" id="f-comp" placeholder="Lexile, wcpm, or grade equivalent" />
 
     <label class="lbl">Phonics level</label>
-    <input type="text" id="f-phonics" placeholder="VCe, suffixes/prefixes, Greek/Latin roots…" />
-    <input type="text" id="f-ufli" placeholder="UFLI level (e.g. L54–62) — needed for Independent" style="margin-top:6px" />
+    <input type="text" id="f-phonics" placeholder="Target pattern this week (e.g. VCe, suffixes)" />
+    <select id="f-stage" style="margin-top:6px"></select>
+    <div class="hint" id="stage-hint" style="margin-top:4px"></div>
     <label class="toggle"><input type="checkbox" id="f-phonicsOn" /> Phonics mode on</label>
 
     <label class="lbl">Reading level target</label>
@@ -244,6 +245,77 @@ const CCSS = [
 /* =============================================================
    UI STATE (only the parts that need it; text inputs are read live)
    ============================================================= */
+// ---------------------------------------------------------------------
+// PHONICS STAGES — plain language for teachers, UFLI underneath.
+// "decodable" is CUMULATIVE: everything at or below this stage.
+// ---------------------------------------------------------------------
+const STAGES = [
+  {
+    id: "unknown",
+    label: "Not sure — use grade to estimate",
+    ufli: "",
+    decodable: "",
+  },
+  {
+    id: "short",
+    label: "Short vowels (cat, red, sit)",
+    ufli: "UFLI L1–L41",
+    decodable: "closed syllables with short vowels; simple consonants; -s, -ing endings",
+  },
+  {
+    id: "blends",
+    label: "Blends & digraphs (stop, ship, chin)",
+    ufli: "UFLI L42–L53",
+    decodable: "everything above, plus consonant blends (st, cl, spr) and digraphs (sh, ch, th, ck, wh)",
+  },
+  {
+    id: "vce",
+    label: "Silent e / VCe (make, ride, home)",
+    ufli: "UFLI L54–L62",
+    decodable: "everything above, plus silent-e long vowels (VCe)",
+  },
+  {
+    id: "teams",
+    label: "Vowel teams (rain, boat, see)",
+    ufli: "UFLI L63–L78",
+    decodable: "everything above, plus vowel teams (ai, ay, ee, ea, oa, ow, oo) and diphthongs (ou, oi)",
+  },
+  {
+    id: "rcontrol",
+    label: "R-controlled vowels (car, bird, corn)",
+    ufli: "UFLI L79–L98",
+    decodable: "everything above, plus r-controlled vowels (ar, er, ir, or, ur)",
+  },
+  {
+    id: "affixes",
+    label: "Suffixes & prefixes (jumping, unlock)",
+    ufli: "UFLI L99–L118",
+    decodable: "everything above, plus common prefixes and suffixes on known roots",
+  },
+  {
+    id: "roots",
+    label: "Multisyllabic / Greek & Latin roots",
+    ufli: "UFLI L119–L128",
+    decodable: "everything above, plus multisyllabic words with Greek and Latin roots",
+  },
+];
+
+// When the stage is unknown, err LOW. A text that's too easy still gets read;
+// a text that's too hard does not.
+function inferStage(grade) {
+  const g = parseInt(grade, 10);
+  if (!g || g <= 2) return STAGES.find((s) => s.id === "blends");
+  if (g <= 4) return STAGES.find((s) => s.id === "vce");
+  if (g <= 6) return STAGES.find((s) => s.id === "teams");
+  return STAGES.find((s) => s.id === "rcontrol");
+}
+
+function resolveStage(profile) {
+  const chosen = STAGES.find((s) => s.id === profile.stage);
+  if (chosen && chosen.id !== "unknown") return { stage: chosen, assumed: false };
+  return { stage: inferStage(profile.grade), assumed: true };
+}
+
 const ui = {
   length: "Medium",
   goalTab: "chips",
@@ -283,6 +355,22 @@ function buildControls() {
     };
     length.appendChild(b);
   });
+
+  const stage = document.getElementById("f-stage");
+  STAGES.forEach((s) => stage.add(new Option(s.label, s.id)));
+  const stageHint = document.getElementById("stage-hint");
+  const updateStageHint = () => {
+    const s = STAGES.find((x) => x.id === stage.value);
+    if (!s || s.id === "unknown") {
+      const inf = inferStage(document.getElementById("f-grade").value);
+      stageHint.textContent = `Will assume ${inf.label.split(" (")[0]} (${inf.ufli}) from grade. Confirm with assessment.`;
+    } else {
+      stageHint.textContent = s.ufli;
+    }
+  };
+  stage.onchange = updateStageHint;
+  document.getElementById("f-grade").addEventListener("change", updateStageHint);
+  updateStageHint();
 
   const target = document.getElementById("f-target");
   const hintEl = document.getElementById("target-hint");
@@ -381,7 +469,7 @@ function gatherConfig() {
       name: val("f-name"), grade: val("f-grade"), age: val("f-age"),
       culture: val("f-culture"), interests: val("f-interests"),
       phonicsLevel: val("f-phonics"), phonicsOn: document.getElementById("f-phonicsOn").checked,
-      ufli: val("f-ufli"),
+      stage: document.getElementById("f-stage").value,
       comprehension: val("f-comp"),
     },
     readingTarget: ui.readingTarget,
@@ -410,60 +498,69 @@ function checked(id) { return document.getElementById(id).checked; }
 // resolves the conflict it creates.
 // ---------------------------------------------------------------------
 function INDEPENDENT_RULES(profile) {
-  const lvl = profile.ufli || profile.phonicsLevel || "the student's stated phonics level";
+  const { stage, assumed } = resolveStage(profile);
+  const lvl = `${stage.label.split(" (")[0]} (${stage.ufli})`;
   const who = profile.name || "this student";
   const culture = profile.culture || "(not given)";
   return `INDEPENDENT LEVEL — HARD CONSTRAINT.
 
-The student must decode this text COLD, unaided, at 90% accuracy or better. Nine of every ten words must be readable using ONLY phonics patterns at or below: ${lvl}.
+The student must decode this text COLD, unaided, at 90% accuracy or better.
+
+DECODING LEVEL: ${lvl}${assumed ? " — ASSUMED from grade, not assessed. Err on the easy side." : ""}
+DECODABLE PATTERNS (cumulative — everything at or below this level): ${stage.decodable}
 
 ======================================================================
 READ THIS FIRST — THE MOST COMMON FAILURE, AND IT IS A TOTAL FAILURE
 ======================================================================
-When told to write at a low decoding level, models cheat: they keep the sentences simple by making the SUBJECT generic. They abandon the real topic — the history, the community, the conflict, the idea — and write a bland little vignette instead. A boy fixes a car. A girl wins a race. Nothing happens. Nobody is from anywhere.
+When told to write at a low decoding level, models cheat: they keep the words simple by making the SUBJECT generic. They drop the real topic — the history, the community, the conflict, the idea — and write a bland little vignette. A boy fixes a car. Nothing happens. Nobody is from anywhere.
 
-THIS IS A FAILED TEXT. It does not matter that it hit 90% decodable. If the text is culturally empty or intellectually empty, YOU HAVE FAILED THE ASSIGNMENT COMPLETELY.
+THIS IS A FAILED TEXT. Hitting 90% decodable does not redeem it. A culturally empty or intellectually empty text FAILS THE ASSIGNMENT COMPLETELY.
 
-Cultural richness lives in SUBJECT MATTER AND SPECIFICITY — not in long words or complex syntax. A text can be entirely one-syllable words and still be about East Los Angeles in 1948, about laws written to stop a community, about what people built anyway. Specificity is FREE. Real names, real places, real dates, real stakes cost you nothing in decodability.
+Cultural richness lives in SUBJECT MATTER AND SPECIFICITY — never in long words or complex syntax. A text can be entirely one-syllable words and still be about East Los Angeles in 1948, about laws written to stop a community, about what they built anyway. SPECIFICITY IS FREE. Real names, real places, real years, real stakes cost nothing in decodability.
 
-- The reader is ${profile.age || "an adolescent"} years old, ${culture !== "(not given)" ? `and their background is: ${culture}` : "and their cultural background matters"}. Characters must reflect ${who}'s world — NEVER a generic default name or a blank, cultureless setting.
+REQUIRED, for any real person, place, or event:
+- A real named PLACE. Not "a town." → "East Los Angeles."
+- A real YEAR or era. Not "long ago." → "in 1948." (Constitution rule: date AND geographic context.)
+- Real named PEOPLE where they exist.
+- For NONFICTION: the real CONFLICT or STAKE. What was hard? What pushed back? What did people do about it? A celebration with no struggle is only half the truth.
+- For FICTION: a real stake or tension. Something at risk, resisted, or refused. Not just a pleasant moment.
+- Characters must reflect ${who}'s world (background: ${culture}). NEVER a generic default name.
 - If your draft could be about anyone, anywhere, START OVER.
 
 ======================================================================
-THE CONSTRAINT HIERARCHY — obey this order absolutely
+THE CONSTRAINT HIERARCHY — obey absolutely
 ======================================================================
 NEVER YIELDS:  decoding level · conceptual depth · cultural integrity · factual truth
-YIELDS, IN THIS ORDER:  vocabulary precision  →  sentence structure  →  FORM
+YIELDS, IN ORDER:  vocabulary precision  →  sentence structure  →  FORM
 
-You must exhaust EVERY yielding option before you even consider touching content.
-
-- Cannot name a concept at this level? SHOW it. You may not write "hydraulic system" or "inspection" — but you CAN write: "They put a pump in the car. Flip a switch — it lifts. Flip it again — it drops. Now it passes the rule." Concept intact. Only the vocabulary yielded.
-- Prose going flat, choppy, or thin at this level? **SWITCH TO FREE VERSE. Do this BEFORE you simplify the subject.** Form is the LAST thing that never-yields, and content is protected behind it.
+Exhaust every yielding option before touching content.
+- Can't name a concept at this level? SHOW it. You may not write "hydraulic system" — but you CAN write: "They put a pump in the car. Flip a switch — it lifts. Flip it back — it drops. Now it passes the rule." Concept intact; only vocabulary yielded.
+- Prose going flat or thin? SWITCH TO FREE VERSE — BEFORE you simplify the subject. Form yields; content does not.
 
 ======================================================================
-FORM MAY CHANGE — AND USUALLY SHOULD, AT LOW LEVELS
+FORM
 ======================================================================
-Short sentences in PROSE read as broken and babyish. Short lines in VERSE read as craft. Verse biography and documentary poetry are established, dignified forms for exactly this reader — Kwame Alexander, Jason Reynolds, Margarita Engle write this way on purpose.
-
-- Try prose first. The moment prose starts going thin, WRITE FREE VERSE INSTEAD. Do not stay in prose and pay for it with the subject matter.
-- MODE AND FACTS DO NOT CHANGE. Nonfiction stays nonfiction — a form shift produces INFORMATIONAL VERSE, a documentary poem. Every fact remains true. You may NOT invent people, events, or details. Poetry is not permission to fictionalize.
-- Rhythm, repetition, and white space are tools. Never filler. Never write down to this reader.
+Short sentences in PROSE read as broken. Short lines in VERSE read as craft. Verse biography and documentary poetry are dignified, established forms for this exact reader.
+- Try prose. The moment it goes thin, write FREE VERSE instead.
+- MODE AND FACTS NEVER CHANGE. Nonfiction stays nonfiction — a form shift yields INFORMATIONAL VERSE (a documentary poem), still entirely true. Never invent people, events, or details. Poetry is not permission to fictionalize.
+- The reader is ${profile.age || "an adolescent"}. Never write down to them.
 
 ======================================================================
 DECODING RULES
 ======================================================================
-- Only phonics patterns at or below ${lvl}. Do not preview patterns above it.
-- Prefer one-syllable words. Multisyllabic words only if every syllable uses a taught pattern — and rarely.
-- The ONLY permitted off-level words are PROPER NOUNS — real names of real people and places. Use them freely: "East Los Angeles," "Ramona Gardens," "1948." They cost you nothing and they carry the culture.
+- Use ONLY the decodable patterns listed above. Nothing beyond them.
+- Prefer one-syllable words. Multisyllabic only if EVERY syllable uses a listed pattern.
+- The ONLY permitted off-level words are PROPER NOUNS — real names of real people and places. Use them freely; they carry the culture and cost nothing.
 - Sentences (or verse lines): 8 words or fewer. No embedded clauses.
-- Unsure whether a word is decodable at this level? DO NOT USE IT.
+- NEVER split a word into syllables to fake decodability. Writing "Sat ur day" is FORBIDDEN — it is a broken word, not a decodable one. If a word is too hard, CHOOSE A DIFFERENT WORD ("one day").
+- Unsure whether a word is decodable here? DO NOT USE IT.
 
 ======================================================================
-LAYER 2 VOCABULARY — hold it OUT of the text
+LAYER 2 VOCABULARY
 ======================================================================
-Words too advanced to decode (hydraulic, generation, inspection) must NOT appear in the body text. Keep them out entirely and list them in the teacher note as words to FRONT-LOAD verbally. The student learns them from the teacher, not by decoding them.
+Words too advanced to decode (hydraulic, generation, inspection) must NOT appear in the text at all. Keep them out; list them in the teacher note to FRONT-LOAD verbally. The student learns them from the teacher, not by decoding.
 
-WORD BANK / ITALICS: italicize ONLY on-level phonics-target words — the words the student is practicing. NEVER italicize the hardest words in the text. If a word is too hard to decode, it does not belong in the text at all, let alone in the word bank.`;
+ITALICS / WORD BANK: italicize ONLY on-level practice words. NEVER italicize the hardest words in the text — if a word is too hard to decode, it should not be in the text at all.`;
 }
 
 function buildPrompt(cfg, adjustment) {
@@ -482,8 +579,8 @@ function buildPrompt(cfg, adjustment) {
 - Age: ${profile.age || "(n/a)"}
 - Cultural background: ${profile.culture || "(n/a)"}
 - Interests: ${profile.interests || "(n/a)"}
-- Phonics level: ${profile.phonicsLevel || "(n/a)"}${profile.phonicsOn ? " (PHONICS MODE ON)" : ""}
-- UFLI level: ${profile.ufli || "(not given)"}
+- Phonics target pattern: ${profile.phonicsLevel || "(n/a)"}${profile.phonicsOn ? " (PHONICS MODE ON)" : ""}
+- Decoding stage: ${(() => { const r = resolveStage(profile); return `${r.stage.label}${r.assumed ? " [ASSUMED from grade — not assessed]" : ""}`; })()}
 - Comprehension level: ${profile.comprehension || "(n/a)"}`);
   p.push(`TEXT TO PRODUCE:
 - Mode: ${cfg.mode}${cfg.genre ? `\n- Genre: ${cfg.genre}` : ""}
@@ -541,7 +638,12 @@ ${comprehensionLogic(cfg, goalText)} Number each question. 3 to 5 questions. No 
 A short note FOR THE TEACHER (never shown to the student). Exactly these three lines:
 FORM: name the form you used (prose, free verse, letter, dialogue) and, in one sentence, why — especially if you shifted away from prose.
 FRONT-LOAD: list the Layer 2 words you kept OUT of the text and that the teacher should teach verbally before reading (e.g. hydraulic, generation). If none, write "none".
-WATCH: one sentence on what to watch for as this student reads.`);
+WATCH: one sentence on what to watch for as this student reads.${
+      resolveStage(profile).assumed
+        ? `
+LEVEL: state that no phonics level was given, name the level you assumed from grade, and say to confirm with assessment.`
+        : ""
+    }`);
   }
   p.push(fmt.join("\n\n"));
   p.push(`Sections to include, in this order: ${sections.join(" ")}`);
