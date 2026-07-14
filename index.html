@@ -1,31 +1,1119 @@
-ReadRise
-Serious, culturally alive texts at the reader's level.
-1 Who is this for
-Name or ID
-Age
-Age keeps the writing age-appropriate — never the reading level.
-Cultural background
-Interests
-2 What they can read
-Give whichever measure you have. At least one.
-Reading level
-The measure most teachers have. Sets the text's level.
-Decoding stage optional — more precise
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ReadRise</title>
+<style>
+  :root {
+    --blue: #1d4e8f;
+    --blue-light: #e8f0f8;
+    --paper: #f9f8f5;
+    --rule: #cfcfcf;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #1a1a1a;
+    background: #fff;
+  }
+  .app { display: flex; height: 100vh; }
 
-Constrains the exact phonics patterns. If you have it, use it. Free UFLI placement test →
-Reading target
+  /* ---------- left panel ---------- */
+  .left {
+    width: 380px; min-width: 380px;
+    background: #fff;
+    border-right: 1px solid #e3e3e3;
+    overflow-y: auto;
+    padding: 18px 20px 60px;
+  }
+  .brand { color: var(--blue); font-size: 22px; font-weight: bold; letter-spacing: .5px; margin: 0 0 2px; }
+  .tagline { font-size: 12px; color: #666; margin: 0 0 18px; }
 
-3 What to make
-Mode
-Genre (optional)
-Length
-Learning goal
+  .lbl {
+    display: block; font-size: 11px;
+    font-variant: small-caps; letter-spacing: .6px;
+    color: var(--blue); font-weight: bold; margin: 16px 0 5px;
+  }
+  input[type=text], select, textarea {
+    width: 100%; font-family: Arial, sans-serif; font-size: 13px;
+    padding: 7px 9px; border: 1px solid #c9c9c9; border-radius: 4px; background: #fff;
+  }
+  textarea { resize: vertical; }
+  .row2 { display: flex; gap: 8px; }
+  .row2 > div { flex: 1; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font-size: 12px; padding: 5px 9px; border-radius: 14px;
+    border: 1px solid #c9c9c9; background: #fff; color: #333; cursor: pointer;
+  }
+  .chip.on { border-color: var(--blue); background: var(--blue); color: #fff; }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 8px; }
+  .tab {
+    flex: 1; font-size: 12px; padding: 6px 4px;
+    border: 1px solid #c9c9c9; background: #fff; color: #555;
+    cursor: pointer; border-radius: 4px 4px 0 0;
+  }
+  .tab.on { border-color: var(--blue); border-bottom: 2px solid var(--blue); background: var(--blue-light); color: var(--blue); font-weight: bold; }
+
+  .toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 5px 0; cursor: pointer; }
+
+  .generate {
+    width: 100%; margin-top: 22px; padding: 12px; font-size: 15px; font-weight: bold;
+    font-family: Arial, sans-serif; color: #fff; background: var(--blue);
+    border: none; border-radius: 5px; cursor: pointer;
+  }
+  .generate:disabled { background: #9bb3d1; cursor: default; }
+
+  /* ---------- right panel ---------- */
+  .right { flex: 1; background: var(--paper); overflow-y: auto; padding: 28px 0; }
+  .inner { max-width: 780px; margin: 0 auto; padding: 0 28px; }
+  .placeholder { color: #8a877d; font-size: 15px; margin-top: 60px; text-align: center; }
+  .err { color: #b00020; font-size: 15px; margin-top: 40px; }
+
+  .actionbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  .spacer { flex: 1; }
+  .abtn {
+    font-size: 12px; padding: 7px 12px; border: 1px solid var(--blue);
+    background: #fff; color: var(--blue); border-radius: 4px; cursor: pointer; font-family: Arial, sans-serif;
+  }
+  .abtn:disabled { opacity: .5; cursor: default; }
+
+  .seclbl {
+    font-size: 12px; font-variant: small-caps; letter-spacing: .8px; color: var(--blue);
+    font-weight: bold; margin: 26px 0 10px; border-bottom: 1px solid #e0ddd5; padding-bottom: 4px;
+  }
+  .title { font-size: 21px; font-weight: bold; margin: 0 0 14px; }
+  .para { font-size: 16px; line-height: 1.7; margin: 0 0 14px; }
+  .rule { height: 22px; border-bottom: 1px solid var(--rule); margin: 10px 0; }
+  .q { padding: 12px 0; border-bottom: 1px solid #e3e0d8; }
+  .qtext { font-size: 15px; line-height: 1.5; margin: 0; }
+  .grid { column-count: 2; column-gap: 40px; font-size: 15px; line-height: 2; }
+  .twrhead { font-size: 15px; font-weight: bold; margin: 18px 0 6px; }
+  .kernel { font-style: italic; font-size: 15px; margin: 0 0 8px; }
+  .hint { font-size: 13px; color: #666; font-style: italic; margin: 2px 0 8px; }
+  .obox { display: inline-block; width: 26px; height: 24px; border: 1px solid var(--rule); border-radius: 4px; flex-shrink: 0; }
+  .detail { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+
+  /* ---------- feedback ---------- */
+  .feedback { margin-top: 36px; padding-top: 20px; border-top: 2px solid #e0ddd5; }
+  .fq { margin-bottom: 14px; }
+  .fq b { font-size: 13px; }
+  .fq label { display: block; font-size: 13px; padding: 3px 0; cursor: pointer; }
+  .send { font-size: 13px; padding: 9px 18px; border: none; background: var(--blue); color: #fff; border-radius: 4px; cursor: pointer; }
+  .ok { margin-left: 12px; font-size: 13px; color: #2e7d32; }
+  .bad { margin-left: 12px; font-size: 13px; color: #b00020; }
+  .hidden { display: none; }
+
+  /* teacher note — screen only, never printed for students */
+  .tnote {
+    background: var(--blue-light);
+    border-left: 3px solid var(--blue);
+    padding: 12px 16px;
+    margin-bottom: 22px;
+    border-radius: 3px;
+  }
+  .tnote-h {
+    font-size: 11px; font-variant: small-caps; letter-spacing: .6px;
+    color: var(--blue); font-weight: bold; margin-bottom: 6px;
+  }
+  .tnote p { font-size: 13px; line-height: 1.5; margin: 4px 0; }
+
+  /* ---- panel grouping ---- */
+  .left { padding-bottom: 0; }
+  .grp {
+    border-top: 1px solid #e8e8e8;
+    padding: 4px 0 20px;
+    margin-top: 18px;
+  }
+  .grp:first-of-type { border-top: none; margin-top: 8px; }
+  .grp-h {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: bold; color: #1a1a1a;
+    margin: 6px 0 4px;
+  }
+  .grp-n {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--blue); color: #fff;
+    font-size: 11px; font-weight: bold;
+  }
+  .hint { font-size: 11px; color: #777; line-height: 1.45; margin: 5px 0 0; }
+  .req { color: #b00020; font-weight: normal; font-size: 10px; letter-spacing: 0; }
+  .opt { color: #999; font-weight: normal; font-size: 10px; letter-spacing: 0; text-transform: none; font-variant: normal; }
+  .link { color: var(--blue); text-decoration: underline; white-space: nowrap; }
+
+  /* chips can be disabled (Independent needs a decoding stage) */
+  .chip:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ---- sticky generate ---- */
+  .genwrap {
+    position: sticky; bottom: 0;
+    background: #fff;
+    border-top: 1px solid #e3e3e3;
+    padding: 14px 0 16px;
+    margin-top: 4px;
+  }
+  .generate { margin-top: 0; }
+
+  @media (max-width: 720px) {
+    .app { flex-direction: column; height: auto; }
+    .left { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid #e3e3e3; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ================= LEFT: controls ================= -->
+  <div class="left">
+    <div class="brand">ReadRise</div>
+    <div class="tagline">Serious, culturally alive texts at the reader's level.</div>
+
+    <!-- ---------- 1. WHO ---------- -->
+    <div class="grp">
+      <div class="grp-h"><span class="grp-n">1</span> Who is this for</div>
+
+      <div class="row2">
+        <div style="flex:2">
+          <label class="lbl">Name or ID</label>
+          <input type="text" id="f-name" />
+        </div>
+        <div style="flex:1">
+          <label class="lbl">Age</label>
+          <input type="text" id="f-age" placeholder="16" />
+        </div>
+      </div>
+      <div class="hint">Age keeps the writing age-appropriate — never the reading level.</div>
+
+      <label class="lbl">Cultural background</label>
+      <input type="text" id="f-culture" />
+
+      <label class="lbl">Interests</label>
+      <input type="text" id="f-interests" />
+    </div>
+
+    <!-- ---------- 2. WHAT THEY CAN READ ---------- -->
+    <div class="grp">
+      <div class="grp-h"><span class="grp-n">2</span> What they can read</div>
+      <div class="hint" style="margin:0 0 12px">Give whichever measure you have. At least one.</div>
+
+      <label class="lbl">Reading level</label>
+      <input type="text" id="f-comp" placeholder="Lexile (600L), grade equivalent (3rd), or WCPM" />
+      <div class="hint">The measure most teachers have. Sets the text's level.</div>
+
+      <label class="lbl">Decoding stage <span class="opt">optional — more precise</span></label>
+      <select id="f-stage"></select>
+      <div class="hint" id="stage-hint"></div>
+      <div class="hint">
+        Constrains the exact phonics patterns. If you have it, use it.
+        <a href="https://ufli.education.ufl.edu/wp-content/uploads/2025/08/UFLIAssessment_081025_v2.pdf"
+           target="_blank" rel="noopener" class="link">Free UFLI placement test →</a>
+      </div>
+
+      <label class="lbl">Reading target</label>
+      <div class="chips" id="f-target"></div>
+      <div class="hint" id="target-hint"></div>
+    </div>
+
+    <!-- ---------- 3. WHAT TO MAKE ---------- -->
+    <div class="grp">
+      <div class="grp-h"><span class="grp-n">3</span> What to make</div>
+
+      <label class="lbl">Mode</label>
+      <select id="f-mode"></select>
+
+      <label class="lbl">Genre (optional)</label>
+      <input type="text" id="f-genre" placeholder="e.g. profile, memoir, how-it-works" />
+
+      <label class="lbl">Length</label>
+      <div class="chips" id="f-length"></div>
+
+      <label class="lbl">Learning goal</label>
+      <div class="tabs" id="f-tabs"></div>
+      <div id="tab-iep" class="hidden"><textarea id="f-iep" rows="4" placeholder="Paste the full IEP goal"></textarea></div>
+      <div id="tab-chips"><div class="chips" id="f-chips"></div></div>
+      <div id="tab-ccss" class="hidden"><select id="f-ccss"><option value="">Select a standard</option></select></div>
+
+      <label class="toggle" style="margin-top:16px">
+        <input type="checkbox" id="f-phonicsOn" /> Practice a phonics pattern this week
+      </label>
+      <input type="text" id="f-phonics" class="hidden" placeholder="Pattern to practice (e.g. VCe, suffixes)" />
+
+      <label class="lbl">Include</label>
+      <div id="f-outputs"></div>
+    </div>
+
+    <div class="genwrap">
+      <button class="generate" id="f-generate">Generate text</button>
+      <div class="hint" id="gen-hint"></div>
+    </div>
+  </div>
+
+  <!-- ================= RIGHT: output ================= -->
+  <div class="right">
+    <div class="inner">
+      <div id="placeholder" class="placeholder">Set up a student on the left, then generate a text.</div>
+      <div id="error" class="err hidden"></div>
+      <div id="actionbar" class="actionbar hidden"></div>
+      <div id="output"></div>
+      <div id="feedback" class="feedback hidden"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =============================================================
+   CONFIG — swap points kept at the top
+   ============================================================= */
+const MODEL = "claude-sonnet-4-6";        // change here only
+const GENERATE_URL = "/api/generate";     // same-origin proxy
+const APPS_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbzHthL0NRJgFuEScjkODMiOj-U0614WE4V5hQ5KAeG_zex1AKDTPnoNa5_K2ekflsmH/exec";
+
+const CONSTITUTION = `CORE VALUES (hold these in every text):
+- Excellence: intellectual rigor. Never reduce conceptual depth.
+- Joy: texts can be funny or surprising. Not every text needs a lesson.
+- Resistance: honor dignity and agency. Center what people built and how they pushed back.
+
+CONSTITUTION (follow every rule, every time):
+- Write from an insider perspective, as if the reader belongs to the culture described.
+- Never render AAVE or oral vernacular in writing. Use standard written English.
+- Never default to tragedy for Black and brown lives. Center agency, resistance, and what people built.
+- Never flatten an individual into a representative of their whole group.
+- Never blend more than two interests in a single text.
+- Scaffold linguistic complexity only. Never reduce the conceptual depth of the ideas.
+- For any real person or event, include the date and the geographic context.
+- Do not put fill-in-the-blank or response lines inside the reading text itself.`;
+
+const LENGTHS = [
+  { id: "Short", label: "Short", words: "~150 words", target: 150 },
+  { id: "Medium", label: "Medium", words: "~300 words", target: 300 },
+  { id: "Long", label: "Long", words: "~500 words", target: 500 },
+  { id: "Extended", label: "Extended", words: "~800 words", target: 800 },
+];
+const MODES = ["Fiction", "Nonfiction", "Narrative nonfiction", "Either"];
+const CHIPS = [
+  "Vocabulary in context", "Inference", "Main idea", "Finding evidence",
+  "Author's craft", "Figurative language", "Text structure", "Fluency",
+  "Decoding multisyllabic words",
+];
+const CCSS = [
+  "RI.1","RI.2","RI.3","RI.4","RI.5","RI.6","RI.7","RI.8",
+  "RL.1","RL.2","RL.3","RL.4","RL.5","RL.6","L.4","L.5","L.6",
+];
+
+/* =============================================================
+   UI STATE (only the parts that need it; text inputs are read live)
+   ============================================================= */
+// ---------------------------------------------------------------------
+// PHONICS STAGES — plain language for teachers, UFLI underneath.
+// "decodable" is CUMULATIVE: everything at or below this stage.
+// ---------------------------------------------------------------------
+const STAGES = [
+  {
+    id: "short",
+    label: "Short vowels (cat, red, sit)",
+    ufli: "UFLI L1–L41",
+    decodable: "closed syllables with short vowels; simple consonants; -s, -ing endings",
+  },
+  {
+    id: "blends",
+    label: "Blends & digraphs (stop, ship, chin)",
+    ufli: "UFLI L42–L53",
+    decodable: "everything above, plus consonant blends (st, cl, spr) and digraphs (sh, ch, th, ck, wh)",
+  },
+  {
+    id: "vce",
+    label: "Silent e / VCe (make, ride, home)",
+    ufli: "UFLI L54–L62",
+    decodable: "everything above, plus silent-e long vowels (VCe)",
+  },
+  {
+    id: "teams",
+    label: "Vowel teams (rain, boat, see)",
+    ufli: "UFLI L63–L78",
+    decodable: "everything above, plus vowel teams (ai, ay, ee, ea, oa, ow, oo) and diphthongs (ou, oi)",
+  },
+  {
+    id: "rcontrol",
+    label: "R-controlled vowels (car, bird, corn)",
+    ufli: "UFLI L79–L98",
+    decodable: "everything above, plus r-controlled vowels (ar, er, ir, or, ur)",
+  },
+  {
+    id: "affixes",
+    label: "Suffixes & prefixes (jumping, unlock)",
+    ufli: "UFLI L99–L118",
+    decodable: "everything above, plus common prefixes and suffixes on known roots",
+  },
+  {
+    id: "roots",
+    label: "Multisyllabic / Greek & Latin roots",
+    ufli: "UFLI L119–L128",
+    decodable: "everything above, plus multisyllabic words with Greek and Latin roots",
+  },
+];
+
+// Independent REQUIRES a decoding stage — the UI gates on it, so this
+// simply resolves the chosen stage. No inference from grade: a student's
+// enrolled grade says nothing about what they can decode. That gap is the
+// entire premise of this tool.
+function resolveStage(profile) {
+  return STAGES.find((s) => s.id === profile.stage) || null;
+}
+
+const ui = {
+  length: "Medium",
+  goalTab: "chips",
+  chips: new Set(),
+  readingTarget: "Instructional",   // "Independent" | "Instructional"
+  lastConfig: null,
+};
+
+// Independent = the student decodes ~90% of words cold, unsupported.
+// Instructional = the student can read it WITH teacher support.
+const TARGET_HINTS = {
+  Independent:
+    "90% decodable cold. Only patterns at or below the student's level. Form may shift to verse to protect both the level and the ideas.",
+  Instructional:
+    "Read with teacher support. Stretch words and longer sentences allowed.",
+};
+
+/* =============================================================
+   BUILD THE LEFT PANEL
+   ============================================================= */
+function buildControls() {
+  const mode = document.getElementById("f-mode");
+  MODES.forEach((m) => mode.add(new Option(m, m)));
+
+  const length = document.getElementById("f-length");
+  LENGTHS.forEach((l) => {
+    const b = document.createElement("button");
+    b.className = "chip" + (l.id === ui.length ? " on" : "");
+    b.textContent = l.label + " " + l.words;
+    b.onclick = () => {
+      ui.length = l.id;
+      [...length.children].forEach((c) => c.classList.remove("on"));
+      b.classList.add("on");
+    };
+    length.appendChild(b);
+  });
+
+  const stage = document.getElementById("f-stage");
+  stage.add(new Option("Select a stage…", ""));
+  STAGES.filter((s) => s.id !== "unknown").forEach((s) => stage.add(new Option(s.label, s.id)));
+  const stageHint = document.getElementById("stage-hint");
+
+  const target = document.getElementById("f-target");
+  const targetHint = document.getElementById("target-hint");
+  ["Independent", "Instructional"].forEach((t) => {
+    const b = document.createElement("button");
+    b.className = "chip" + (t === ui.readingTarget ? " on" : "");
+    b.textContent = t;
+    b.dataset.target = t;
+    b.onclick = () => {
+      if (b.disabled) return;
+      ui.readingTarget = t;
+      [...target.children].forEach((c) => c.classList.remove("on"));
+      b.classList.add("on");
+      targetHint.textContent = TARGET_HINTS[t];
+      syncGate();
+    };
+    target.appendChild(b);
+  });
+  targetHint.textContent = TARGET_HINTS[ui.readingTarget];
+
+  // Independent requires SOME level — either measure will do. UFLI is more
+  // precise (exact phonics patterns); a reading level alone means decodability
+  // is estimated, not exact. Say so rather than implying false precision.
+  function syncGate() {
+    const s = STAGES.find((x) => x.id === stage.value);
+    const hasStage = !!(s && s.id);
+    const hasLevel = !!document.getElementById("f-comp").value.trim();
+    const anyLevel = hasStage || hasLevel;
+    const indep = target.querySelector('[data-target="Independent"]');
+
+    stageHint.textContent = hasStage ? s.ufli : "";
+
+    indep.disabled = !anyLevel;
+    if (!anyLevel && ui.readingTarget === "Independent") {
+      ui.readingTarget = "Instructional";
+      [...target.children].forEach((c) =>
+        c.classList.toggle("on", c.dataset.target === "Instructional")
+      );
+      targetHint.textContent = TARGET_HINTS.Instructional;
+    }
+
+    const gen = document.getElementById("gen-hint");
+    if (!anyLevel) {
+      gen.textContent = "Add a reading level or decoding stage to use Independent.";
+    } else if (ui.readingTarget === "Independent" && !hasStage) {
+      gen.textContent = "No decoding stage given — decodability will be estimated from the reading level, not exact.";
+    } else {
+      gen.textContent = "";
+    }
+  }
+  stage.onchange = syncGate;
+  document.getElementById("f-comp").addEventListener("input", syncGate);
+  syncGate();
+
+  // phonics pattern field only appears when practising a pattern
+  const phonOn = document.getElementById("f-phonicsOn");
+  const phonField = document.getElementById("f-phonics");
+  phonOn.addEventListener("change", () => {
+    phonField.classList.toggle("hidden", !phonOn.checked);
+    recomputeGridAuto();
+  });
+
+  const tabs = document.getElementById("f-tabs");
+  [["iep", "IEP goal"], ["chips", "Skills"], ["ccss", "CCSS"]].forEach(([id, lbl]) => {
+    const b = document.createElement("button");
+    b.className = "tab" + (id === ui.goalTab ? " on" : "");
+    b.textContent = lbl;
+    b.onclick = () => {
+      ui.goalTab = id;
+      [...tabs.children].forEach((c) => c.classList.remove("on"));
+      b.classList.add("on");
+      document.getElementById("tab-iep").classList.toggle("hidden", id !== "iep");
+      document.getElementById("tab-chips").classList.toggle("hidden", id !== "chips");
+      document.getElementById("tab-ccss").classList.toggle("hidden", id !== "ccss");
+      recomputeGridAuto();
+    };
+    tabs.appendChild(b);
+  });
+
+  const chipWrap = document.getElementById("f-chips");
+  CHIPS.forEach((c) => {
+    const b = document.createElement("button");
+    b.className = "chip";
+    b.textContent = c;
+    b.onclick = () => {
+      if (ui.chips.has(c)) { ui.chips.delete(c); b.classList.remove("on"); }
+      else { ui.chips.add(c); b.classList.add("on"); }
+      recomputeGridAuto();
+    };
+    chipWrap.appendChild(b);
+  });
+
+  const ccss = document.getElementById("f-ccss");
+  CCSS.forEach((c) => ccss.add(new Option(c, c)));
+  ccss.onchange = recomputeGridAuto;
+  document.getElementById("f-iep").addEventListener("input", recomputeGridAuto);
 
 
-Practice a phonics pattern this week
-Include
+  const outs = document.getElementById("f-outputs");
+  [
+    ["text", "Reading text", true, true],
+    ["wordGrid", "Word grid", false, false],
+    ["wordCount", "Word count by paragraph", false, false],
+    ["comprehension", "Comprehension questions", true, false],
+    ["inference", "Inference questions", false, false],
+    ["twr", "TWR writing activities", false, false],
+  ].forEach(([id, lbl, checked, locked]) => {
+    const wrap = document.createElement("label");
+    wrap.className = "toggle";
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.id = "o-" + id; cb.checked = checked; cb.disabled = locked;
+    const span = document.createElement("span");
+    span.id = "olbl-" + id; span.textContent = lbl;
+    wrap.appendChild(cb); wrap.appendChild(span);
+    outs.appendChild(wrap);
+  });
 
-Generate text
+  document.getElementById("f-generate").onclick = () => generate(null);
+}
 
-Set up a student on the left, then generate a text.
+function recomputeGridAuto() {
+  const phonicsOn = document.getElementById("f-phonicsOn").checked;
+  const goalStr = [
+    document.getElementById("f-iep").value,
+    [...ui.chips].join(" "),
+    document.getElementById("f-ccss").value,
+  ].join(" ").toLowerCase();
+  const auto = phonicsOn || /decod|multisyllab|prefix|suffix|root/.test(goalStr);
+  const cb = document.getElementById("o-wordGrid");
+  const lbl = document.getElementById("olbl-wordGrid");
+  lbl.textContent = auto ? "Word grid (auto)" : "Word grid";
+  if (auto) cb.checked = true;
+}
 
+/* =============================================================
+   PROMPT BUILDER
+   ============================================================= */
+function gatherConfig() {
+  return {
+    profile: {
+      name: val("f-name"), age: val("f-age"),
+      culture: val("f-culture"), interests: val("f-interests"),
+      phonicsLevel: val("f-phonics"), phonicsOn: document.getElementById("f-phonicsOn").checked,
+      stage: document.getElementById("f-stage").value,
+      comprehension: val("f-comp"),
+    },
+    readingTarget: ui.readingTarget,
+    mode: val("f-mode") || "Either",
+    genre: val("f-genre"),
+    length: ui.length,
+    goalTab: ui.goalTab,
+    iep: val("f-iep"),
+    chips: [...ui.chips],
+    ccss: val("f-ccss"),
+    outputs: {
+      text: true,
+      wordGrid: checked("o-wordGrid"),
+      wordCount: checked("o-wordCount"),
+      comprehension: checked("o-comprehension"),
+      inference: checked("o-inference"),
+      twr: checked("o-twr"),
+    },
+  };
+}
+function val(id) { return document.getElementById(id).value.trim(); }
+function checked(id) { return document.getElementById(id).checked; }
+
+// ---------------------------------------------------------------------
+// INDEPENDENT LEVEL — the 90% rule, and the constraint hierarchy that
+// resolves the conflict it creates.
+// ---------------------------------------------------------------------
+function INDEPENDENT_RULES(profile) {
+  const stage = resolveStage(profile);
+  const level = profile.comprehension;
+  const who = profile.name || "this student";
+  const culture = profile.culture || "(not given)";
+
+  const decodingBlock = stage
+    ? `DECODING STAGE: ${stage.label.split(" (")[0]} (${stage.ufli})
+DECODABLE PATTERNS (cumulative — everything at or below this stage): ${stage.decodable}
+- Use ONLY these patterns. Nothing beyond them.`
+    : `NO DECODING STAGE GIVEN. The only measure is the reading level: ${level || "(none)"}.
+- Work from that reading level. Keep words high-frequency and short; keep sentences simple.
+- Decodability here is ESTIMATED, not exact — you cannot verify phonics patterns without a stage. Do not pretend otherwise. Say so in the teacher note.`;
+
+  return `INDEPENDENT LEVEL — HARD CONSTRAINT.
+
+The student must read this text COLD, unaided, at 90% accuracy or better. Nine of every ten words readable without help.
+
+${decodingBlock}
+${level && stage ? `Reading level (secondary): ${level}` : ""}
+
+======================================================================
+READ THIS FIRST — THE MOST COMMON FAILURE, AND IT IS A TOTAL FAILURE
+======================================================================
+When told to write at a low level, models cheat: they keep the words simple by making the SUBJECT generic. They drop the real topic — the history, the community, the craft, the idea — and write a bland vignette. A boy fixes a car. Nothing happens. Nobody is from anywhere.
+
+THIS IS A FAILED TEXT. Hitting 90% does not redeem it. A culturally empty or intellectually empty text FAILS COMPLETELY.
+
+Cultural richness lives in SUBJECT MATTER AND SPECIFICITY — never in long words or complex syntax. A text can be entirely one-syllable words and still be about East Los Angeles in 1958, about what people made and how they made it. SPECIFICITY IS FREE. Real names, real places, real years cost nothing in readability.
+
+REQUIRED, for any real person, place, or event:
+- A real named PLACE. Not "a town." → "East Los Angeles."
+- A real YEAR or era. Not "long ago." → "in 1958." (Constitution: date AND geographic context.)
+- Real named PEOPLE where they exist.
+- A real IDEA. The text must be ABOUT something. But an idea is NOT the same as a fight. Craft, mastery, invention, patience, style, community, inheritance — what people made and how they made it — are real ideas, and they are enough. A text about how a thing is built, who taught whom, and what it means to the people who make it has full conceptual depth with no antagonist in it.
+- DO NOT MANUFACTURE CONFLICT. Do not add a law, a villain, a police officer, or a struggle the teacher did not ask for. Never assume a community's story needs oppression in it to be worth telling — the achievement IS the story. (Constitution: never default to tragedy. Center what people built.)
+- If a struggle IS genuinely central and was requested: tell it honestly. Do not imply a tidy victory that did not happen. If a law stood for decades, say so. Resistance is a long grind, not a single defiant gesture. Never trade truth for a satisfying ending.
+- FICTION needs a real stake or tension — something at risk, resisted, or refused. Not just a pleasant moment.
+- Characters must reflect ${who}'s world (background: ${culture}). NEVER a generic default name.
+- If your draft could be about anyone, anywhere, START OVER.
+
+======================================================================
+THE CONSTRAINT HIERARCHY — obey absolutely
+======================================================================
+NEVER YIELDS:  reading level · conceptual depth · cultural integrity · factual truth
+YIELDS, IN ORDER:  vocabulary precision  →  sentence structure  →  FORM
+
+Exhaust every yielding option before touching content.
+- Can't name a concept at this level? SHOW it. You may not write "hydraulic system" — but you CAN write: "They put a pump in the car. Flip a switch — it lifts. Flip it back — it drops." Concept intact; only vocabulary yielded.
+- Prose going flat or thin? SWITCH TO FREE VERSE — BEFORE you simplify the subject. Form yields; content does not.
+
+======================================================================
+FORM
+======================================================================
+Short sentences in PROSE read as broken. Short lines in VERSE read as craft. Verse biography and documentary poetry are dignified, established forms for this exact reader.
+- Try prose. The moment it goes thin, write FREE VERSE instead.
+- MODE AND FACTS NEVER CHANGE. Nonfiction stays nonfiction — a form shift yields INFORMATIONAL VERSE (a documentary poem), still entirely true. Never invent people, events, or details. Poetry is not permission to fictionalize.
+- The reader is ${profile.age || "an adolescent"}. Never write down to them.
+
+======================================================================
+WRITING RULES
+======================================================================
+- Prefer one-syllable words. Multisyllabic only when every syllable is decodable at this level.
+- The ONLY permitted off-level words are PROPER NOUNS — real names of real people and places. Use them freely; they carry the culture and cost nothing.
+- Sentences (or verse lines): 8 words or fewer. No embedded clauses.
+- NEVER split a word into syllables to fake decodability. "Sat ur day" is FORBIDDEN — it is a broken word. Choose a different word ("one day").
+- Unsure whether a word works at this level? DO NOT USE IT.
+
+======================================================================
+LAYER 2 VOCABULARY
+======================================================================
+Words too advanced to decode (hydraulic, generation, inspection) must NOT appear in the text at all. Keep them out; list them in the teacher note to FRONT-LOAD verbally. The student learns them from the teacher, not by decoding.
+
+ITALICS / WORD BANK: italicize ONLY on-level practice words. NEVER italicize the hardest words in the text.`;
+}
+
+function buildPrompt(cfg, adjustment) {
+  const { profile, outputs } = cfg;
+  const lengthObj = LENGTHS.find((l) => l.id === cfg.length) || LENGTHS[1];
+  const goalText = cfg.goalTab === "iep" ? cfg.iep
+    : cfg.goalTab === "chips" ? cfg.chips.join(", ")
+    : cfg.ccss;
+
+  const p = [];
+  p.push(`You are generating an intervention reading text for ReadRise, a literacy tool for special education and intervention teachers working with striving adolescent readers. The reader is older than the texts usually written at their decoding level — give them something intellectually serious and culturally alive, written at the level specified.`);
+  p.push(CONSTITUTION);
+  p.push(`STUDENT PROFILE:
+- Name/ID: ${profile.name || "(unnamed)"}
+- Age: ${profile.age || "(n/a)"}
+- Cultural background: ${profile.culture || "(n/a)"}
+- Interests: ${profile.interests || "(n/a)"}
+- Phonics target pattern: ${profile.phonicsLevel || "(n/a)"}${profile.phonicsOn ? " (PHONICS MODE ON)" : ""}
+- Decoding stage: ${(resolveStage(profile) || {}).label || "(not set)"}
+- Comprehension level: ${profile.comprehension || "(n/a)"}`);
+  p.push(`TEXT TO PRODUCE:
+- Mode: ${cfg.mode}${cfg.genre ? `\n- Genre: ${cfg.genre}` : ""}
+- Length: about ${lengthObj.target} words (${lengthObj.words}).
+- READING LEVEL TARGET: ${cfg.readingTarget}`);
+  if (goalText) p.push(`LEARNING GOAL: ${goalText}`);
+
+  if (cfg.readingTarget === "Independent") {
+    p.push(INDEPENDENT_RULES(profile));
+  } else {
+    p.push(`INSTRUCTIONAL LEVEL: This text will be read WITH teacher support. Stretch vocabulary and longer sentences are allowed. The student is not expected to decode every word unaided.`);
+  }
+
+  if (profile.phonicsOn && profile.phonicsLevel) {
+    p.push(`PHONICS TARGET: Seed words fitting the pattern "${profile.phonicsLevel}" naturally into the text. Italicize those phonics-target words by wrapping each in *single asterisks*.`);
+  } else {
+    p.push(`VOCABULARY: Surface a small number of Academic Word List (AWL) words that fit the topic. Italicize them by wrapping each in *single asterisks*.`);
+  }
+
+  const sections = ["===TEXT==="];
+  const fmt = [
+    `OUTPUT FORMAT — return ONLY the sections listed below, each opened by its exact marker on its own line. No preamble, no closing remarks, no markdown headers.`,
+    `===TEXT===
+Put a title on the first line, then the passage in normal paragraphs separated by a blank line. Italicize target words with *asterisks*.`,
+  ];
+  if (outputs.comprehension) {
+    sections.push("===COMPREHENSION===");
+    fmt.push(`===COMPREHENSION===
+${comprehensionLogic(cfg, goalText)} Number each question. 3 to 5 questions. No answer lines.${
+      cfg.readingTarget === "Independent"
+        ? " DECODABILITY: the QUESTIONS must be decodable at the same level as the text — a student who cannot read the question cannot answer it. BUT: keeping the questions readable does NOT mean making them trivial. NO yes/no questions. NO questions answerable by guessing. Every question must require the student to go back into the text and find something. Simple words, real thinking."
+        : ""
+    }`);
+  }
+  if (outputs.inference) {
+    sections.push("===INFERENCE===");
+    fmt.push(`===INFERENCE===
+2 to 3 inference questions. Use the learning goal as the entry point, then push the reader past the literal into interpretation ("what does this suggest", "why might", "what can you conclude"). Number each. No answer lines.`);
+  }
+  if (outputs.twr) {
+    sections.push("===TWR===");
+    fmt.push(twrInstructions(profile));
+  }
+  if (cfg.readingTarget === "Independent") {
+    sections.push("===TEACHERNOTE===");
+    fmt.push(`===TEACHERNOTE===
+A short note FOR THE TEACHER (never shown to the student). Exactly these three lines:
+FORM: name the form you used (prose, free verse, letter, dialogue) and, in one sentence, why — especially if you shifted away from prose.
+FRONT-LOAD: list the Layer 2 words you kept OUT of the text and that the teacher should teach verbally before reading (e.g. hydraulic, generation). If none, write "none".
+WATCH: one sentence on what to watch for as this student reads.
+VERIFY: if this text names real people, organizations, dates, or events, list them here for the teacher to fact-check before use. Named organizations paired with specific years are the most error-prone. If the text asserts no specific facts, write "none".${resolveStage(profile) ? "" : "\nPRECISION: state that no decoding stage was given, so decodability is estimated from the reading level rather than verified against phonics patterns. Recommend the UFLI placement test for an exact stage."}`);
+  }
+  p.push(fmt.join("\n\n"));
+  p.push(`Sections to include, in this order: ${sections.join(" ")}`);
+
+
+  if (adjustment === "simpler") {
+    p.push(`ADJUSTMENT — SIMPLER SENTENCES: Lower the syntactic complexity. Shorter sentences, fewer clauses. Keep ALL cultural content and the full conceptual depth. Keep the same italicized target words.`);
+  } else if (adjustment === "tighter") {
+    p.push(`ADJUSTMENT — TIGHTER PHONICS: Adhere more strictly to the phonics level "${profile.phonicsLevel}". Favor words that fit the pattern; swap out off-pattern multisyllabic words where you can without flattening meaning.`);
+  }
+  return p.join("\n\n");
+}
+
+function comprehensionLogic(cfg, goalText) {
+  const g = (goalText || "").toLowerCase();
+  const chips = cfg.goalTab === "chips" ? cfg.chips.map((c) => c.toLowerCase()) : [];
+  const ccss = cfg.goalTab === "ccss" ? cfg.ccss : "";
+  const has = (s) => g.includes(s) || chips.some((c) => c.includes(s));
+  if (has("vocabulary") || has("figurative") || ccss === "RI.4" || ccss === "L.4" || ccss === "L.5")
+    return `Write word-in-context questions in this exact frame: "The text uses the word [word] in this line: [quote the line]. Based on how it is used here, what do you think it means?"`;
+  if (has("evidence") || has("cite") || ccss === "RI.1")
+    return `Write find-the-evidence questions in this frame: "Find the sentence that shows [claim]. Write it in your own words, or copy it exactly."`;
+  if (has("main idea") || has("summary") || ccss === "RI.2")
+    return `Ask the reader to identify the central idea, distinguish it from supporting details, and write a one-sentence summary.`;
+  if (ccss === "RI.3" || has("analyze"))
+    return `Ask the reader to trace how specific individuals, events, or ideas in the text are connected to each other.`;
+  if (ccss === "RI.8" || has("argument"))
+    return `Ask the reader to identify the central claim, evaluate the evidence, and decide whether it is convincing.`;
+  return `Write 2 to 3 literal comprehension questions answerable directly from the text.`;
+}
+
+function twrInstructions(profile) {
+  const who = profile.name && profile.name.length <= 20 ? profile.name : "the main person in the text";
+  return `===TWR===
+Generate all four Writing Revolution activities, labeled A, B, C, D, using content from the text. These are SCAFFOLDS the STUDENT completes. Do NOT do the student's writing for them in C or D.
+
+A. Because / But / So
+KERNEL: one 3–6 word kernel sentence, subject + verb only, no clauses, drawn from the text.
+Then three lines, each the kernel followed by one conjunction:
+- [kernel] because
+- [kernel] but
+- [kernel] so
+
+B. Sentence Expansion
+KERNEL: a DIFFERENT 3–5 word sentence than A. You may paraphrase. Replace pronouns with the actual name (${who}).
+Then exactly 3 fitting question words from: Where? When? How? Why? Which kind? With whom? — one per line, each starting with "-".
+
+C. Paragraph Outline (one focused section of the text only, not the whole text)
+CLAIM: a single claim sentence.
+Then exactly 3 supporting details, each on its own line starting with "-". Do NOT place them in final logical order — the student will order them.
+CONCLUSION: (output this label with NOTHING after it — the student writes the conclusion)
+
+D. 5 W's to Topic Sentence
+FOCUS: name the one topic or moment from the text the student will write about (one short line).
+Then output these five labels, each on its own line with NOTHING after the colon — the student fills them in:
+WHO:
+WHAT:
+WHERE:
+WHEN:
+WHY:`;
+}
+
+/* =============================================================
+   PARSE
+   ============================================================= */
+// Word bank = the italicised words in the text. Derived in code, so it can
+// never drift out of sync with the passage (and costs no tokens).
+function deriveWordBank(textBlock) {
+  const seen = [];
+  const re = /\*([^*]+)\*/g;
+  let m;
+  while ((m = re.exec(textBlock)) !== null) {
+    const w = m[1].trim();
+    if (w && !seen.some((x) => x.toLowerCase() === w.toLowerCase())) seen.push(w);
+  }
+  return seen.map((w, i) => `${i + 1}. ${w}`).join("\n");
+}
+
+// Word counts are counting. JavaScript counts; a language model guesses.
+function appendWordCounts(textBlock) {
+  const lines = textBlock.split("\n");
+  let start = 0;
+  for (let i = 0; i < lines.length; i++) { if (lines[i].trim()) { start = i + 1; break; } }
+  const head = lines.slice(0, start).join("\n");
+  const body = lines.slice(start).join("\n");
+  const paras = body.split(/\n\s*\n/);
+  const counted = paras.map((para) => {
+    if (!para.trim()) return para;
+    const n = (para.replace(/\*/g, "").match(/[A-Za-z'-]+/g) || []).length;
+    return para.trimEnd() + ` (${n} words)`;
+  });
+  return head + "\n" + counted.join("\n\n");
+}
+
+function parseSections(raw) {
+  const out = { text: "", wordgrid: "", comprehension: "", inference: "", twr: "", teachernote: "" };
+  if (!raw) return out;
+  const map = { TEXT: "text", WORDGRID: "wordgrid", COMPREHENSION: "comprehension", INFERENCE: "inference", TWR: "twr", TEACHERNOTE: "teachernote" };
+  const parts = raw.split(/===\s*([A-Z]+)\s*===/g);
+  for (let i = 1; i < parts.length; i += 2) {
+    const key = map[parts[i].trim()];
+    if (key) out[key] = (parts[i + 1] || "").trim();
+  }
+  if (!out.text && !out.wordgrid && !out.comprehension && !out.inference && !out.twr) out.text = raw.trim();
+  return out;
+}
+function numberedLines(block) {
+  return block.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => l.replace(/^\s*\d+[\.\)]\s*/, ""));
+}
+function escapeHtml(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase(); }
+function italicHtml(s) { return escapeHtml(s).replace(/\*([^*]+)\*/g, "<em>$1</em>"); }
+
+/* =============================================================
+   RENDER (shared by on-page and print; pass styles flavor)
+   ============================================================= */
+function sectionsHtml(parsed, opts) {
+  const inline = !!(opts && opts.inline); // print = inline styles
+  const cls = (c, st) => inline ? `style="${st}"` : `class="${c}"`;
+  const ruled = inline
+    ? `<div style="height:22px;border-bottom:1px solid #ccc;margin:10px 0;"></div>`
+    : `<div class="rule"></div>`;
+  const box = inline
+    ? `<span style="display:inline-block;width:26px;height:22px;border:1px solid #ccc;border-radius:4px;vertical-align:middle;margin-right:10px;"></span>`
+    : `<span class="obox"></span>`;
+  const seclbl = (t) => inline
+    ? `<div style="font-size:12px;font-variant:small-caps;letter-spacing:.8px;color:${"#1d4e8f"};font-weight:bold;margin:26px 0 10px;border-bottom:1px solid #e0ddd5;padding-bottom:4px;">${t}</div>`
+    : `<div class="seclbl">${t}</div>`;
+
+  let html = "";
+
+  // reading text
+  if (parsed.text) {
+    const lines = parsed.text.split("\n");
+    let title = "", start = 0;
+    for (let i = 0; i < lines.length; i++) { if (lines[i].trim()) { title = lines[i].replace(/^#+\s*/, "").trim(); start = i + 1; break; } }
+    const paras = lines.slice(start).join("\n").trim().split(/\n\s*\n/).filter(Boolean);
+    html += inline
+      ? `<h2 style="font-size:21px;margin:0 0 14px;">${escapeHtml(title)}</h2>`
+      : `<div class="title">${escapeHtml(title)}</div>`;
+    paras.forEach((para) => {
+      // Preserve internal line breaks — verse must render as verse, not collapse to prose.
+      const body = italicHtml(para).replace(/\n/g, "<br>");
+      html += inline
+        ? `<p style="font-size:16px;line-height:1.7;margin:0 0 14px;">${body}</p>`
+        : `<p class="para">${body}</p>`;
+    });
+  }
+
+  // word grid
+  if (parsed.wordgrid) {
+    const ws = numberedLines(parsed.wordgrid);
+    html += seclbl("Word bank");
+    html += inline ? `<div style="column-count:2;column-gap:40px;font-size:15px;line-height:2;">` : `<div class="grid">`;
+    ws.forEach((w, i) => { html += `<div>${i + 1}. ${escapeHtml(w)}</div>`; });
+    html += `</div>`;
+  }
+
+  // questions
+  const qBlock = (block, label) => {
+    const qs = numberedLines(block);
+    let h = seclbl(label);
+    qs.forEach((q, i) => {
+      h += inline
+        ? `<div style="padding:12px 0;border-bottom:1px solid #e3e0d8;"><p style="font-size:15px;line-height:1.5;margin:0;">${i + 1}. ${italicHtml(q)}</p>${ruled}${ruled}</div>`
+        : `<div class="q"><p class="qtext">${i + 1}. ${italicHtml(q)}</p>${ruled}${ruled}</div>`;
+    });
+    return h;
+  };
+  if (parsed.comprehension) html += qBlock(parsed.comprehension, "Comprehension");
+  if (parsed.inference) html += qBlock(parsed.inference, "Inference");
+
+  // TWR
+  if (parsed.twr) {
+    html += seclbl("Writing");
+    const chunks = parsed.twr.split(/\n(?=[A-D]\.\s)/);
+    chunks.forEach((chunk) => {
+      const lines = chunk.split("\n").map((l) => l.trim()).filter(Boolean);
+      if (!lines.length) return;
+      const letter = (lines[0].match(/^([A-D])\./) || [])[1];
+      const header = escapeHtml(lines[0].replace(/^[A-D]\.\s*/, ""));
+      html += inline ? `<div style="font-size:15px;font-weight:bold;margin:18px 0 6px;">${header}</div>` : `<div class="twrhead">${header}</div>`;
+      const rest = lines.slice(1);
+      const p = (st, c, txt) => inline ? `<p style="${st}">${txt}</p>` : `<p class="${c}">${txt}</p>`;
+
+      if (letter === "C") {
+        const claim = rest.find((l) => /^CLAIM:/i.test(l));
+        const details = rest.filter((l) => /^-\s*/.test(l)).map((l) => l.replace(/^-\s*/, ""));
+        if (claim) html += p("font-size:15px;margin:0 0 6px;", "qtext", `<strong>Claim:</strong> ${escapeHtml(claim.replace(/^CLAIM:\s*/i, ""))}`);
+        html += inline ? `<p style="font-size:13px;color:#666;font-style:italic;margin:2px 0 8px;">Number these details in the best order:</p>` : `<p class="hint">Number these details in the best order:</p>`;
+        details.forEach((d) => {
+          html += inline
+            ? `<p style="font-size:15px;margin:8px 0;">${box}${escapeHtml(d)}</p>`
+            : `<div class="detail">${box}<span class="qtext">${escapeHtml(d)}</span></div>`;
+        });
+        html += p("font-size:15px;margin:12px 0 2px;", "qtext", `<strong>Conclusion:</strong>`) + ruled;
+        return;
+      }
+      if (letter === "D") {
+        const focus = rest.find((l) => /^FOCUS:/i.test(l));
+        if (focus) html += p("font-size:15px;margin:0 0 6px;", "qtext", `<strong>Focus:</strong> ${escapeHtml(focus.replace(/^FOCUS:\s*/i, ""))}`);
+        ["Who", "What", "Where", "When", "Why"].forEach((w) => {
+          html += p("font-size:15px;margin:8px 0 2px;", "qtext", `<strong>${w}:</strong>`) + ruled;
+        });
+        html += p("font-size:15px;margin:12px 0 2px;", "qtext", `Combine your answers into one topic sentence:`) + ruled;
+        return;
+      }
+      // A and B
+      rest.forEach((line) => {
+        const kernel = line.match(/^KERNEL:\s*(.*)$/i);
+        if (kernel) { html += inline ? `<p style="font-style:italic;font-size:15px;margin:0 0 8px;">${escapeHtml(kernel[1])}</p>` : `<p class="kernel">${escapeHtml(kernel[1])}</p>`; return; }
+        html += p("font-size:15px;margin:8px 0 2px;", "qtext", escapeHtml(line.replace(/^-\s*/, ""))) + ruled;
+      });
+    });
+  }
+
+  return html;
+}
+
+/* =============================================================
+   GENERATE
+   ============================================================= */
+let currentParsed = null;
+
+async function generate(adjustment) {
+  const cfg = adjustment ? ui.lastConfig : gatherConfig();
+  ui.lastConfig = cfg;
+
+  const btn = document.getElementById("f-generate");
+  btn.disabled = true;
+  document.getElementById("error").classList.add("hidden");
+  document.getElementById("placeholder").classList.add("hidden");
+  if (!adjustment) {
+    document.getElementById("output").innerHTML = "";
+    document.getElementById("actionbar").classList.add("hidden");
+    document.getElementById("feedback").classList.add("hidden");
+  }
+  document.getElementById("output").insertAdjacentHTML("afterbegin",
+    `<div id="loading" class="placeholder">${adjustment ? "Updating…" : "Writing the text…"}</div>`);
+
+  const prompt = buildPrompt(cfg, adjustment);
+
+  try {
+    const res = await fetch(GENERATE_URL, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 4000,
+        messages: [
+          { role: "user", content: prompt },
+          // Prefill: forces the model to begin AT the first section marker.
+          // It cannot write planning notes or a word-by-word audit, because
+          // there is nowhere for them to go. Cuts tokens and latency hard.
+          { role: "assistant", content: "===TEXT===" },
+        ],
+      }),
+    });
+    const data = await res.json();
+    if (data.error) {
+      const msg = typeof data.error === "string" ? data.error : (data.error.message || JSON.stringify(data.error));
+      throw new Error(msg);
+    }
+    let text = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("\n");
+    if (!text) throw new Error("Empty response from the model.");
+    // The prefill isn't echoed back — put it back so the parser sees it.
+    if (!/^===TEXT===/.test(text.trim())) text = "===TEXT===\n" + text;
+    if (data.stop_reason === "max_tokens" && !/===TEXT===/.test(text)) {
+      throw new Error("The model ran out of room before writing the text. Try a shorter length.");
+    }
+    currentParsed = parseSections(text);
+    // Derived in code, not requested from the model: cheaper, and cannot drift.
+    if (cfg.outputs.wordGrid) currentParsed.wordgrid = deriveWordBank(currentParsed.text);
+    if (cfg.outputs.wordCount) currentParsed.text = appendWordCounts(currentParsed.text);
+    renderOutput(cfg);
+  } catch (e) {
+    document.getElementById("output").innerHTML = "";
+    const err = document.getElementById("error");
+    err.textContent = "Generation failed: " + (e && e.message ? e.message : "unknown error");
+    err.classList.remove("hidden");
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function renderOutput(cfg) {
+  const note = currentParsed.teachernote
+    ? `<div class="tnote">
+         <div class="tnote-h">Teacher note — not printed for students</div>
+         ${currentParsed.teachernote
+           .split("\n").map((l) => l.trim()).filter(Boolean)
+           .map((l) => {
+             const m = l.match(/^(FORM|FRONT-LOAD|WATCH):\s*(.*)$/i);
+             return m
+               ? `<p><strong>${escapeHtml(cap(m[1]))}:</strong> ${escapeHtml(m[2])}</p>`
+               : `<p>${escapeHtml(l)}</p>`;
+           }).join("")}
+       </div>`
+    : "";
+  document.getElementById("output").innerHTML = note + sectionsHtml(currentParsed, { inline: false });
+
+  // action bar
+  const bar = document.getElementById("actionbar");
+  bar.innerHTML = "";
+  const simpler = mkBtn("Simpler sentences", () => generate("simpler"));
+  bar.appendChild(simpler);
+  if (cfg.profile.phonicsOn) bar.appendChild(mkBtn("Tighter phonics", () => generate("tighter")));
+  const sp = document.createElement("div"); sp.className = "spacer"; bar.appendChild(sp);
+  bar.appendChild(mkBtn("Print / Save as PDF", printDoc));
+  bar.appendChild(mkBtn("Copy text", copyText));
+  bar.classList.remove("hidden");
+
+  renderFeedback(cfg);
+}
+function mkBtn(label, fn) {
+  const b = document.createElement("button");
+  b.className = "abtn"; b.textContent = label; b.onclick = fn;
+  return b;
+}
+
+/* =============================================================
+   PRINT  (real window — works on a hosted page)
+   ============================================================= */
+function printDoc() {
+  const name = (ui.lastConfig && ui.lastConfig.profile.name) || "Student";
+  const today = new Date().toLocaleDateString();
+  const doc = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>ReadRise</title></head>
+  <body style="font-family:Arial,Helvetica,sans-serif;color:#1a1a1a;max-width:720px;margin:30px auto;padding:0 24px;background:#fff;">
+    <div style="display:flex;justify-content:space-between;font-size:13px;color:#555;border-bottom:2px solid #1d4e8f;padding-bottom:8px;margin-bottom:22px;">
+      <span><strong>${escapeHtml(name)}</strong></span><span>${today}</span>
+    </div>
+    ${sectionsHtml(currentParsed, { inline: true })}
+  </body></html>`;
+  const w = window.open("", "_blank");
+  if (!w) { alert("Allow pop-ups to print or save as PDF."); return; }
+  w.document.write(doc); w.document.close(); w.focus();
+  setTimeout(() => w.print(), 350);
+}
+
+function copyText() {
+  const p = currentParsed; const lines = [];
+  if (p.text) lines.push(p.text.replace(/\*/g, ""));
+  if (p.wordgrid) lines.push("\nWORD BANK\n" + p.wordgrid);
+  if (p.comprehension) lines.push("\nCOMPREHENSION\n" + p.comprehension);
+  if (p.inference) lines.push("\nINFERENCE\n" + p.inference);
+  if (p.twr) lines.push("\nWRITING\n" + p.twr.replace(/\*/g, ""));
+  navigator.clipboard.writeText(lines.join("\n"));
+}
+
+/* =============================================================
+   FEEDBACK  (browser -> Apps Script; works on a hosted page)
+   ============================================================= */
+function renderFeedback(cfg) {
+  const fb = document.getElementById("feedback");
+  const radioGroup = (q, name, opts) =>
+    `<div class="fq"><b>${q}</b>${opts.map((o) =>
+      `<label><input type="radio" name="${name}" value="${o}"> ${o}</label>`).join("")}</div>`;
+  fb.innerHTML = `
+    <div class="seclbl">Quick feedback</div>
+    ${radioGroup("Did the text work for this student?", "tw", ["Yes", "Mostly", "No"])}
+    ${radioGroup("Difficulty level?", "df", ["Too hard", "About right", "Too easy"])}
+    ${radioGroup('Used "Simpler sentences"?', "ss", ["Yes and it helped", "Yes but didn't help", "Didn't use"])}
+    ${radioGroup('Used "Tighter phonics"?', "tp", ["Yes and it helped", "Yes but didn't help", "Didn't use", "N/A"])}
+    <div class="fq"><b>What would you change?</b><textarea id="fb-change" rows="3"></textarea></div>
+    <button class="send" id="fb-send">Send feedback</button>
+    <span id="fb-status"></span>`;
+  fb.classList.remove("hidden");
+
+  document.getElementById("fb-send").onclick = () => {
+    const status = document.getElementById("fb-status");
+    status.textContent = ""; status.className = "";
+    const pick = (n) => { const el = document.querySelector(`input[name="${n}"]:checked`); return el ? el.value : ""; };
+    const payload = {
+      phonicsLevel: cfg.profile.phonicsLevel || "",
+      comprehensionLevel: cfg.profile.comprehension || "",
+      textLength: cfg.length || "",
+      phonicsOn: !!cfg.profile.phonicsOn,
+      textWorked: pick("tw"),
+      difficulty: pick("df"),
+      simplerSentences: pick("ss"),
+      tighterPhonics: pick("tp"),
+      whatWouldYouChange: document.getElementById("fb-change").value,
+    };
+    document.getElementById("fb-send").disabled = true;
+    fetch(APPS_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) })
+      .then(() => { status.textContent = "Thank you — feedback submitted"; status.className = "ok"; })
+      .catch(() => { status.textContent = "Feedback failed to send"; status.className = "bad"; })
+      .finally(() => { document.getElementById("fb-send").disabled = false; });
+  };
+}
+
+/* boot */
+buildControls();
+</script>
+</body>
+</html>
