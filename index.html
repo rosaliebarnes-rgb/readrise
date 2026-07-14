@@ -411,33 +411,59 @@ function checked(id) { return document.getElementById(id).checked; }
 // ---------------------------------------------------------------------
 function INDEPENDENT_RULES(profile) {
   const lvl = profile.ufli || profile.phonicsLevel || "the student's stated phonics level";
-  return `INDEPENDENT LEVEL — THIS IS A HARD CONSTRAINT, NOT A PREFERENCE.
+  const who = profile.name || "this student";
+  const culture = profile.culture || "(not given)";
+  return `INDEPENDENT LEVEL — HARD CONSTRAINT.
 
-The student must be able to decode this text COLD, with no teacher help, at 90% accuracy or better. Nine of every ten words must be readable using ONLY phonics patterns at or below: ${lvl}.
+The student must decode this text COLD, unaided, at 90% accuracy or better. Nine of every ten words must be readable using ONLY phonics patterns at or below: ${lvl}.
 
-RULES:
-- Use only phonics patterns the student has already been taught (at or below ${lvl}). Do not preview patterns above that level.
-- Prefer one-syllable words. Multisyllabic words are allowed only when every syllable uses a taught pattern, and sparingly.
-- The ONLY permitted off-level words are proper nouns — names of people and places. Everything else must be decodable.
-- Sentences: 8 words or fewer. No embedded clauses.
-- If you are unsure whether a word is decodable at this level, DO NOT USE IT. Choose a simpler word.
+======================================================================
+READ THIS FIRST — THE MOST COMMON FAILURE, AND IT IS A TOTAL FAILURE
+======================================================================
+When told to write at a low decoding level, models cheat: they keep the sentences simple by making the SUBJECT generic. They abandon the real topic — the history, the community, the conflict, the idea — and write a bland little vignette instead. A boy fixes a car. A girl wins a race. Nothing happens. Nobody is from anywhere.
 
-THE CONSTRAINT HIERARCHY — when these collide, obey this order:
-NEVER YIELDS: decoding level · conceptual depth · cultural integrity · factual truth.
-YIELDS, in this order: vocabulary precision → sentence structure → FORM.
+THIS IS A FAILED TEXT. It does not matter that it hit 90% decodable. If the text is culturally empty or intellectually empty, YOU HAVE FAILED THE ASSIGNMENT COMPLETELY.
 
-What this means in practice:
-- Never simplify the IDEA to hit the level. Simplify the WORDS.
-- A concept you cannot name at this level, you can still SHOW. Example: you may not write "hydraulic system" or "inspection" at an early level — but you CAN write: "They put a pump in the car. Flip a switch — it lifts. Flip it again — it drops. Now it passes the rule." The concept survives intact; only the vocabulary changed.
+Cultural richness lives in SUBJECT MATTER AND SPECIFICITY — not in long words or complex syntax. A text can be entirely one-syllable words and still be about East Los Angeles in 1948, about laws written to stop a community, about what people built anyway. Specificity is FREE. Real names, real places, real dates, real stakes cost you nothing in decodability.
 
-FORM MAY CHANGE — THIS IS PERMITTED AND EXPECTED:
-Short sentences in PROSE read as broken and babyish. Short lines in VERSE read as craft. If prose at this decoding level would come out thin, choppy, or condescending to an older reader, WRITE IT AS FREE VERSE instead — or as a list, a letter, or dialogue. Verse biography and documentary poetry are established, dignified forms for exactly this reader. Use them.
-- Attempt prose FIRST. Shift form only when prose at this level would go thin. Verse is not a shortcut — do not reach for it to avoid writing good decodable prose.
-- MODE AND FACTS DO NOT CHANGE. If nonfiction was requested, a form shift produces INFORMATIONAL VERSE — a documentary poem. It is still true. You may not invent facts, characters, or events. Poetry is not permission to fictionalize.
-- This student is ${profile.age || "an adolescent"} years old. Never write down to them. Rhythm, repetition, and white space are tools — not filler.
+- The reader is ${profile.age || "an adolescent"} years old, ${culture !== "(not given)" ? `and their background is: ${culture}` : "and their cultural background matters"}. Characters must reflect ${who}'s world — NEVER a generic default name or a blank, cultureless setting.
+- If your draft could be about anyone, anywhere, START OVER.
 
-LAYER 2 VOCABULARY:
-Words too advanced to decode (e.g. "hydraulic", "generation", "inspection") do NOT go into the body text unmarked. Keep them OUT of the text, and list them in the teacher note as words to front-load verbally. The student learns the word from the teacher, not by decoding it.`;
+======================================================================
+THE CONSTRAINT HIERARCHY — obey this order absolutely
+======================================================================
+NEVER YIELDS:  decoding level · conceptual depth · cultural integrity · factual truth
+YIELDS, IN THIS ORDER:  vocabulary precision  →  sentence structure  →  FORM
+
+You must exhaust EVERY yielding option before you even consider touching content.
+
+- Cannot name a concept at this level? SHOW it. You may not write "hydraulic system" or "inspection" — but you CAN write: "They put a pump in the car. Flip a switch — it lifts. Flip it again — it drops. Now it passes the rule." Concept intact. Only the vocabulary yielded.
+- Prose going flat, choppy, or thin at this level? **SWITCH TO FREE VERSE. Do this BEFORE you simplify the subject.** Form is the LAST thing that never-yields, and content is protected behind it.
+
+======================================================================
+FORM MAY CHANGE — AND USUALLY SHOULD, AT LOW LEVELS
+======================================================================
+Short sentences in PROSE read as broken and babyish. Short lines in VERSE read as craft. Verse biography and documentary poetry are established, dignified forms for exactly this reader — Kwame Alexander, Jason Reynolds, Margarita Engle write this way on purpose.
+
+- Try prose first. The moment prose starts going thin, WRITE FREE VERSE INSTEAD. Do not stay in prose and pay for it with the subject matter.
+- MODE AND FACTS DO NOT CHANGE. Nonfiction stays nonfiction — a form shift produces INFORMATIONAL VERSE, a documentary poem. Every fact remains true. You may NOT invent people, events, or details. Poetry is not permission to fictionalize.
+- Rhythm, repetition, and white space are tools. Never filler. Never write down to this reader.
+
+======================================================================
+DECODING RULES
+======================================================================
+- Only phonics patterns at or below ${lvl}. Do not preview patterns above it.
+- Prefer one-syllable words. Multisyllabic words only if every syllable uses a taught pattern — and rarely.
+- The ONLY permitted off-level words are PROPER NOUNS — real names of real people and places. Use them freely: "East Los Angeles," "Ramona Gardens," "1948." They cost you nothing and they carry the culture.
+- Sentences (or verse lines): 8 words or fewer. No embedded clauses.
+- Unsure whether a word is decodable at this level? DO NOT USE IT.
+
+======================================================================
+LAYER 2 VOCABULARY — hold it OUT of the text
+======================================================================
+Words too advanced to decode (hydraulic, generation, inspection) must NOT appear in the body text. Keep them out entirely and list them in the teacher note as words to FRONT-LOAD verbally. The student learns them from the teacher, not by decoding them.
+
+WORD BANK / ITALICS: italicize ONLY on-level phonics-target words — the words the student is practicing. NEVER italicize the hardest words in the text. If a word is too hard to decode, it does not belong in the text at all, let alone in the word bank.`;
 }
 
 function buildPrompt(cfg, adjustment) {
@@ -496,7 +522,7 @@ List the italicized target words from the text, one per line, numbered like "1. 
     fmt.push(`===COMPREHENSION===
 ${comprehensionLogic(cfg, goalText)} Number each question. 3 to 5 questions. No answer lines.${
       cfg.readingTarget === "Independent"
-        ? " CRITICAL: the QUESTIONS must be decodable at the same level as the text. Do not use a word in a question that you were not allowed to use in the text. A student who cannot read the question cannot answer it."
+        ? " DECODABILITY: the QUESTIONS must be decodable at the same level as the text — a student who cannot read the question cannot answer it. BUT: keeping the questions readable does NOT mean making them trivial. NO yes/no questions. NO questions answerable by guessing. Every question must require the student to go back into the text and find something. Simple words, real thinking."
         : ""
     }`);
   }
@@ -519,6 +545,17 @@ WATCH: one sentence on what to watch for as this student reads.`);
   }
   p.push(fmt.join("\n\n"));
   p.push(`Sections to include, in this order: ${sections.join(" ")}`);
+
+  if (cfg.readingTarget === "Independent") {
+    p.push(`BEFORE YOU OUTPUT — audit your own draft against these. If any answer is wrong, REWRITE IT.
+1. Could this text be about anyone, anywhere? → If yes, it is generic. REWRITE with real people, real places, real dates, real stakes.
+2. Does it carry a real IDEA — something built, resisted, invented, inherited? Or is it just a small pleasant moment? → A moment is not enough. REWRITE.
+3. Does the character reflect this student's actual world, or did you reach for a generic default name? → REWRITE.
+4. Is the prose thin or choppy? → Then you should have written VERSE. Go back and do it.
+5. Are the italicized words the ON-LEVEL practice words — not the hardest words in the text? → Fix.
+6. Can the student decode 9 of every 10 words with patterns at or below their level? → Count. Fix.
+Only output after all six pass.`);
+  }
 
   if (adjustment === "simpler") {
     p.push(`ADJUSTMENT — SIMPLER SENTENCES: Lower the syntactic complexity. Shorter sentences, fewer clauses. Keep ALL cultural content and the full conceptual depth. Keep the same italicized target words.`);
