@@ -122,6 +122,41 @@
   }
   .tnote p { font-size: 13px; line-height: 1.5; margin: 4px 0; }
 
+  /* ---- panel grouping ---- */
+  .left { padding-bottom: 0; }
+  .grp {
+    border-top: 1px solid #e8e8e8;
+    padding: 4px 0 20px;
+    margin-top: 18px;
+  }
+  .grp:first-of-type { border-top: none; margin-top: 8px; }
+  .grp-h {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: bold; color: #1a1a1a;
+    margin: 6px 0 4px;
+  }
+  .grp-n {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--blue); color: #fff;
+    font-size: 11px; font-weight: bold;
+  }
+  .hint { font-size: 11px; color: #777; line-height: 1.45; margin: 5px 0 0; }
+  .req { color: #b00020; font-weight: normal; font-size: 10px; letter-spacing: 0; }
+
+  /* chips can be disabled (Independent needs a decoding stage) */
+  .chip:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ---- sticky generate ---- */
+  .genwrap {
+    position: sticky; bottom: 0;
+    background: #fff;
+    border-top: 1px solid #e3e3e3;
+    padding: 14px 0 16px;
+    margin-top: 4px;
+  }
+  .generate { margin-top: 0; }
+
   @media (max-width: 720px) {
     .app { flex-direction: column; height: auto; }
     .left { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid #e3e3e3; }
@@ -135,58 +170,78 @@
     <div class="brand">ReadRise</div>
     <div class="tagline">Serious, culturally alive texts at the reader's level.</div>
 
-    <label class="lbl">Student name or ID</label>
-    <input type="text" id="f-name" />
+    <!-- ---------- 1. WHO ---------- -->
+    <div class="grp">
+      <div class="grp-h"><span class="grp-n">1</span> Who is this for</div>
 
-    <div class="row2">
-      <div>
-        <label class="lbl">Grade</label>
-        <select id="f-grade"><option value="">—</option></select>
+      <div class="row2">
+        <div style="flex:2">
+          <label class="lbl">Name or ID</label>
+          <input type="text" id="f-name" />
+        </div>
+        <div style="flex:1">
+          <label class="lbl">Age</label>
+          <input type="text" id="f-age" placeholder="16" />
+        </div>
       </div>
-      <div>
-        <label class="lbl">Age</label>
-        <input type="text" id="f-age" />
-      </div>
+      <div class="hint">Age keeps the writing age-appropriate — never the reading level.</div>
+
+      <label class="lbl">Cultural background</label>
+      <input type="text" id="f-culture" />
+
+      <label class="lbl">Interests</label>
+      <input type="text" id="f-interests" />
     </div>
 
-    <label class="lbl">Cultural background</label>
-    <input type="text" id="f-culture" />
+    <!-- ---------- 2. WHAT THEY CAN READ ---------- -->
+    <div class="grp">
+      <div class="grp-h"><span class="grp-n">2</span> What they can read</div>
 
-    <label class="lbl">Interests</label>
-    <input type="text" id="f-interests" />
+      <label class="lbl">Decoding stage <span class="req" id="stage-req"></span></label>
+      <select id="f-stage"></select>
+      <div class="hint" id="stage-hint"></div>
 
-    <label class="lbl">Comprehension level</label>
-    <input type="text" id="f-comp" placeholder="Lexile, wcpm, or grade equivalent" />
+      <label class="lbl">Comprehension level</label>
+      <input type="text" id="f-comp" placeholder="Lexile, wcpm, or grade equivalent" />
+      <div class="hint">What they understand with support. Separate from decoding.</div>
 
-    <label class="lbl">Phonics level</label>
-    <input type="text" id="f-phonics" placeholder="Target pattern this week (e.g. VCe, suffixes)" />
-    <select id="f-stage" style="margin-top:6px"></select>
-    <div class="hint" id="stage-hint" style="margin-top:4px"></div>
-    <label class="toggle"><input type="checkbox" id="f-phonicsOn" /> Phonics mode on</label>
+      <label class="lbl">Reading target</label>
+      <div class="chips" id="f-target"></div>
+      <div class="hint" id="target-hint"></div>
+    </div>
 
-    <label class="lbl">Reading level target</label>
-    <div class="chips" id="f-target"></div>
-    <div class="hint" id="target-hint" style="margin-top:6px"></div>
+    <!-- ---------- 3. WHAT TO MAKE ---------- -->
+    <div class="grp">
+      <div class="grp-h"><span class="grp-n">3</span> What to make</div>
 
-    <label class="lbl">Mode</label>
-    <select id="f-mode"></select>
+      <label class="lbl">Mode</label>
+      <select id="f-mode"></select>
 
-    <label class="lbl">Genre (optional)</label>
-    <input type="text" id="f-genre" />
+      <label class="lbl">Genre (optional)</label>
+      <input type="text" id="f-genre" placeholder="e.g. profile, memoir, how-it-works" />
 
-    <label class="lbl">Length</label>
-    <div class="chips" id="f-length"></div>
+      <label class="lbl">Length</label>
+      <div class="chips" id="f-length"></div>
 
-    <label class="lbl">Learning goal</label>
-    <div class="tabs" id="f-tabs"></div>
-    <div id="tab-iep" class="hidden"><textarea id="f-iep" rows="4" placeholder="Paste the full IEP goal"></textarea></div>
-    <div id="tab-chips"><div class="chips" id="f-chips"></div></div>
-    <div id="tab-ccss" class="hidden"><select id="f-ccss"><option value="">Select a standard</option></select></div>
+      <label class="lbl">Learning goal</label>
+      <div class="tabs" id="f-tabs"></div>
+      <div id="tab-iep" class="hidden"><textarea id="f-iep" rows="4" placeholder="Paste the full IEP goal"></textarea></div>
+      <div id="tab-chips"><div class="chips" id="f-chips"></div></div>
+      <div id="tab-ccss" class="hidden"><select id="f-ccss"><option value="">Select a standard</option></select></div>
 
-    <label class="lbl">Include</label>
-    <div id="f-outputs"></div>
+      <label class="toggle" style="margin-top:16px">
+        <input type="checkbox" id="f-phonicsOn" /> Practice a phonics pattern this week
+      </label>
+      <input type="text" id="f-phonics" class="hidden" placeholder="Pattern to practice (e.g. VCe, suffixes)" />
 
-    <button class="generate" id="f-generate">Generate text</button>
+      <label class="lbl">Include</label>
+      <div id="f-outputs"></div>
+    </div>
+
+    <div class="genwrap">
+      <button class="generate" id="f-generate">Generate text</button>
+      <div class="hint" id="gen-hint"></div>
+    </div>
   </div>
 
   <!-- ================= RIGHT: output ================= -->
@@ -251,12 +306,6 @@ const CCSS = [
 // ---------------------------------------------------------------------
 const STAGES = [
   {
-    id: "unknown",
-    label: "Not sure — use grade to estimate",
-    ufli: "",
-    decodable: "",
-  },
-  {
     id: "short",
     label: "Short vowels (cat, red, sit)",
     ufli: "UFLI L1–L41",
@@ -300,20 +349,12 @@ const STAGES = [
   },
 ];
 
-// When the stage is unknown, err LOW. A text that's too easy still gets read;
-// a text that's too hard does not.
-function inferStage(grade) {
-  const g = parseInt(grade, 10);
-  if (!g || g <= 2) return STAGES.find((s) => s.id === "blends");
-  if (g <= 4) return STAGES.find((s) => s.id === "vce");
-  if (g <= 6) return STAGES.find((s) => s.id === "teams");
-  return STAGES.find((s) => s.id === "rcontrol");
-}
-
+// Independent REQUIRES a decoding stage — the UI gates on it, so this
+// simply resolves the chosen stage. No inference from grade: a student's
+// enrolled grade says nothing about what they can decode. That gap is the
+// entire premise of this tool.
 function resolveStage(profile) {
-  const chosen = STAGES.find((s) => s.id === profile.stage);
-  if (chosen && chosen.id !== "unknown") return { stage: chosen, assumed: false };
-  return { stage: inferStage(profile.grade), assumed: true };
+  return STAGES.find((s) => s.id === profile.stage) || null;
 }
 
 const ui = {
@@ -337,9 +378,6 @@ const TARGET_HINTS = {
    BUILD THE LEFT PANEL
    ============================================================= */
 function buildControls() {
-  const grade = document.getElementById("f-grade");
-  for (let g = 3; g <= 12; g++) grade.add(new Option(g, g));
-
   const mode = document.getElementById("f-mode");
   MODES.forEach((m) => mode.add(new Option(m, m)));
 
@@ -357,36 +395,62 @@ function buildControls() {
   });
 
   const stage = document.getElementById("f-stage");
-  STAGES.forEach((s) => stage.add(new Option(s.label, s.id)));
+  stage.add(new Option("Select a stage…", ""));
+  STAGES.filter((s) => s.id !== "unknown").forEach((s) => stage.add(new Option(s.label, s.id)));
   const stageHint = document.getElementById("stage-hint");
-  const updateStageHint = () => {
-    const s = STAGES.find((x) => x.id === stage.value);
-    if (!s || s.id === "unknown") {
-      const inf = inferStage(document.getElementById("f-grade").value);
-      stageHint.textContent = `Will assume ${inf.label.split(" (")[0]} (${inf.ufli}) from grade. Confirm with assessment.`;
-    } else {
-      stageHint.textContent = s.ufli;
-    }
-  };
-  stage.onchange = updateStageHint;
-  document.getElementById("f-grade").addEventListener("change", updateStageHint);
-  updateStageHint();
 
   const target = document.getElementById("f-target");
-  const hintEl = document.getElementById("target-hint");
+  const targetHint = document.getElementById("target-hint");
   ["Independent", "Instructional"].forEach((t) => {
     const b = document.createElement("button");
     b.className = "chip" + (t === ui.readingTarget ? " on" : "");
     b.textContent = t;
+    b.dataset.target = t;
     b.onclick = () => {
+      if (b.disabled) return;
       ui.readingTarget = t;
       [...target.children].forEach((c) => c.classList.remove("on"));
       b.classList.add("on");
-      hintEl.textContent = TARGET_HINTS[t];
+      targetHint.textContent = TARGET_HINTS[t];
+      syncGate();
     };
     target.appendChild(b);
   });
-  hintEl.textContent = TARGET_HINTS[ui.readingTarget];
+  targetHint.textContent = TARGET_HINTS[ui.readingTarget];
+
+  // Independent requires a decoding stage. Without one it is a guess
+  // dressed up as precision — so gate it rather than silently inferring.
+  function syncGate() {
+    const s = STAGES.find((x) => x.id === stage.value);
+    const indep = target.querySelector('[data-target="Independent"]');
+    const hasStage = !!(s && s.id);
+
+    stageHint.textContent = hasStage ? s.ufli : "";
+    document.getElementById("stage-req").textContent =
+      ui.readingTarget === "Independent" && !hasStage ? "required" : "";
+
+    indep.disabled = !hasStage;
+    if (!hasStage && ui.readingTarget === "Independent") {
+      ui.readingTarget = "Instructional";
+      [...target.children].forEach((c) =>
+        c.classList.toggle("on", c.dataset.target === "Instructional")
+      );
+      targetHint.textContent = TARGET_HINTS.Instructional;
+    }
+    document.getElementById("gen-hint").textContent = !hasStage
+      ? "Pick a decoding stage to use Independent."
+      : "";
+  }
+  stage.onchange = syncGate;
+  syncGate();
+
+  // phonics pattern field only appears when practising a pattern
+  const phonOn = document.getElementById("f-phonicsOn");
+  const phonField = document.getElementById("f-phonics");
+  phonOn.addEventListener("change", () => {
+    phonField.classList.toggle("hidden", !phonOn.checked);
+    recomputeGridAuto();
+  });
 
   const tabs = document.getElementById("f-tabs");
   [["iep", "IEP goal"], ["chips", "Skills"], ["ccss", "CCSS"]].forEach(([id, lbl]) => {
@@ -422,7 +486,7 @@ function buildControls() {
   CCSS.forEach((c) => ccss.add(new Option(c, c)));
   ccss.onchange = recomputeGridAuto;
   document.getElementById("f-iep").addEventListener("input", recomputeGridAuto);
-  document.getElementById("f-phonicsOn").addEventListener("change", recomputeGridAuto);
+
 
   const outs = document.getElementById("f-outputs");
   [
@@ -466,7 +530,7 @@ function recomputeGridAuto() {
 function gatherConfig() {
   return {
     profile: {
-      name: val("f-name"), grade: val("f-grade"), age: val("f-age"),
+      name: val("f-name"), age: val("f-age"),
       culture: val("f-culture"), interests: val("f-interests"),
       phonicsLevel: val("f-phonics"), phonicsOn: document.getElementById("f-phonicsOn").checked,
       stage: document.getElementById("f-stage").value,
@@ -498,7 +562,7 @@ function checked(id) { return document.getElementById(id).checked; }
 // resolves the conflict it creates.
 // ---------------------------------------------------------------------
 function INDEPENDENT_RULES(profile) {
-  const { stage, assumed } = resolveStage(profile);
+  const stage = resolveStage(profile);
   const lvl = `${stage.label.split(" (")[0]} (${stage.ufli})`;
   const who = profile.name || "this student";
   const culture = profile.culture || "(not given)";
@@ -506,7 +570,7 @@ function INDEPENDENT_RULES(profile) {
 
 The student must decode this text COLD, unaided, at 90% accuracy or better.
 
-DECODING LEVEL: ${lvl}${assumed ? " — ASSUMED from grade, not assessed. Err on the easy side." : ""}
+DECODING LEVEL: ${lvl}
 DECODABLE PATTERNS (cumulative — everything at or below this level): ${stage.decodable}
 
 ======================================================================
@@ -577,12 +641,11 @@ function buildPrompt(cfg, adjustment) {
   p.push(CONSTITUTION);
   p.push(`STUDENT PROFILE:
 - Name/ID: ${profile.name || "(unnamed)"}
-- Grade: ${profile.grade || "(n/a)"}
 - Age: ${profile.age || "(n/a)"}
 - Cultural background: ${profile.culture || "(n/a)"}
 - Interests: ${profile.interests || "(n/a)"}
 - Phonics target pattern: ${profile.phonicsLevel || "(n/a)"}${profile.phonicsOn ? " (PHONICS MODE ON)" : ""}
-- Decoding stage: ${(() => { const r = resolveStage(profile); return `${r.stage.label}${r.assumed ? " [ASSUMED from grade — not assessed]" : ""}`; })()}
+- Decoding stage: ${(resolveStage(profile) || {}).label || "(not set)"}
 - Comprehension level: ${profile.comprehension || "(n/a)"}`);
   p.push(`TEXT TO PRODUCE:
 - Mode: ${cfg.mode}${cfg.genre ? `\n- Genre: ${cfg.genre}` : ""}
@@ -641,12 +704,7 @@ A short note FOR THE TEACHER (never shown to the student). Exactly these three l
 FORM: name the form you used (prose, free verse, letter, dialogue) and, in one sentence, why — especially if you shifted away from prose.
 FRONT-LOAD: list the Layer 2 words you kept OUT of the text and that the teacher should teach verbally before reading (e.g. hydraulic, generation). If none, write "none".
 WATCH: one sentence on what to watch for as this student reads.
-VERIFY: if this text names real people, organizations, dates, or events, list them here for the teacher to fact-check before use. Named organizations paired with specific years are the most error-prone. If the text asserts no specific facts, write "none".${
-      resolveStage(profile).assumed
-        ? `
-LEVEL: state that no phonics level was given, name the level you assumed from grade, and say to confirm with assessment.`
-        : ""
-    }`);
+VERIFY: if this text names real people, organizations, dates, or events, list them here for the teacher to fact-check before use. Named organizations paired with specific years are the most error-prone. If the text asserts no specific facts, write "none".`);
   }
   p.push(fmt.join("\n\n"));
   p.push(`Sections to include, in this order: ${sections.join(" ")}`);
