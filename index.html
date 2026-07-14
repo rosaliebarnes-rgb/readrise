@@ -520,10 +520,12 @@ Cultural richness lives in SUBJECT MATTER AND SPECIFICITY — never in long word
 
 REQUIRED, for any real person, place, or event:
 - A real named PLACE. Not "a town." → "East Los Angeles."
-- A real YEAR or era. Not "long ago." → "in 1948." (Constitution rule: date AND geographic context.)
+- A real YEAR or era. Not "long ago." → "in 1958." (Constitution rule: date AND geographic context.)
 - Real named PEOPLE where they exist.
-- For NONFICTION: the real CONFLICT or STAKE. What was hard? What pushed back? What did people do about it? A celebration with no struggle is only half the truth.
-- For FICTION: a real stake or tension. Something at risk, resisted, or refused. Not just a pleasant moment.
+- A real IDEA. The text must be ABOUT something, not just a pleasant moment. But an idea is NOT the same as a fight. Craft, mastery, invention, patience, style, community, inheritance — what people made and how they made it — are all real ideas, and they are enough. A text about how a thing is built, and who taught whom, and what it means to the people who make it, has full conceptual depth with no antagonist in it.
+- DO NOT MANUFACTURE CONFLICT. Do not add a law, a villain, a police officer, or a struggle that the teacher did not ask for. Never assume a community's story needs oppression in it to be worth telling — the achievement IS the story. (Constitution rule: never default to tragedy. Center what people built.)
+- If a struggle IS genuinely central and was requested: tell it honestly. Do not imply a tidy victory that did not happen. If a law stood for decades, say so. If the work took years of organizing, say that — resistance is a long grind, not a single defiant gesture. Never trade truth for a satisfying ending.
+- FICTION needs a real stake or tension — something at risk, resisted, or refused. Not just a pleasant moment.
 - Characters must reflect ${who}'s world (background: ${culture}). NEVER a generic default name.
 - If your draft could be about anyone, anywhere, START OVER.
 
@@ -638,7 +640,8 @@ ${comprehensionLogic(cfg, goalText)} Number each question. 3 to 5 questions. No 
 A short note FOR THE TEACHER (never shown to the student). Exactly these three lines:
 FORM: name the form you used (prose, free verse, letter, dialogue) and, in one sentence, why — especially if you shifted away from prose.
 FRONT-LOAD: list the Layer 2 words you kept OUT of the text and that the teacher should teach verbally before reading (e.g. hydraulic, generation). If none, write "none".
-WATCH: one sentence on what to watch for as this student reads.${
+WATCH: one sentence on what to watch for as this student reads.
+VERIFY: if this text names real people, organizations, dates, or events, list them here for the teacher to fact-check before use. Named organizations paired with specific years are the most error-prone. If the text asserts no specific facts, write "none".${
       resolveStage(profile).assumed
         ? `
 LEVEL: state that no phonics level was given, name the level you assumed from grade, and say to confirm with assessment.`
@@ -649,14 +652,17 @@ LEVEL: state that no phonics level was given, name the level you assumed from gr
   p.push(`Sections to include, in this order: ${sections.join(" ")}`);
 
   if (cfg.readingTarget === "Independent") {
-    p.push(`BEFORE YOU OUTPUT — audit your own draft against these. If any answer is wrong, REWRITE IT.
-1. Could this text be about anyone, anywhere? → If yes, it is generic. REWRITE with real people, real places, real dates, real stakes.
-2. Does it carry a real IDEA — something built, resisted, invented, inherited? Or is it just a small pleasant moment? → A moment is not enough. REWRITE.
-3. Does the character reflect this student's actual world, or did you reach for a generic default name? → REWRITE.
-4. Is the prose thin or choppy? → Then you should have written VERSE. Go back and do it.
-5. Are the italicized words the ON-LEVEL practice words — not the hardest words in the text? → Fix.
-6. Can the student decode 9 of every 10 words with patterns at or below their level? → Count. Fix.
-Only output after all six pass.`);
+    p.push(`BEFORE YOU OUTPUT — audit your own draft. If any answer is wrong, REWRITE IT.
+1. Could this text be about anyone, anywhere? → Generic. REWRITE with real people, real places, real years.
+2. Does it carry a real IDEA — something made, mastered, invented, inherited, or built? (An idea does NOT require a conflict.) Or is it just a small pleasant moment with nothing in it? → A moment is not enough. REWRITE.
+3. Did you ADD a law, a villain, or a struggle nobody asked for? → REMOVE IT. The achievement is the story.
+4. If a struggle IS in the text: did you imply a tidy victory that did not actually happen? → Tell the truth instead, even if it is less satisfying.
+5. Does the character reflect this student's actual world, or did you reach for a generic default name? → REWRITE.
+6. Is the prose thin or choppy? → You should have written VERSE. Go back and do it.
+7. Are the italicized words the ON-LEVEL practice words — not the hardest words in the text? → Fix.
+8. Did you split any word into syllables to fake decodability? → Forbidden. Choose a different word.
+9. Can the student decode 9 of every 10 words at their level? → Count. Fix.
+Only output after all nine pass.`);
   }
 
   if (adjustment === "simpler") {
