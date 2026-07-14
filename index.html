@@ -744,7 +744,9 @@ VERIFY: if this text names real people, organizations, dates, or events, list th
 7. Are the italicized words the ON-LEVEL practice words — not the hardest words in the text? → Fix.
 8. Did you split any word into syllables to fake decodability? → Forbidden. Choose a different word.
 9. Can the student decode 9 of every 10 words at their level? → Count. Fix.
-Only output after all nine pass.`);
+Only output after all nine pass.
+
+DO THIS AUDIT SILENTLY. Do NOT write your reasoning, your word-by-word phonics checks, or your drafts into the response. Output ONLY the marked sections below — nothing before ===TEXT===. Your working notes belong nowhere in the output.`);
   }
 
   if (adjustment === "simpler") {
@@ -959,18 +961,24 @@ async function generate(adjustment) {
     const res = await fetch(GENERATE_URL, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ model: MODEL, max_tokens: 4096, messages: [{ role: "user", content: prompt }] }),
+      body: JSON.stringify({ model: MODEL, max_tokens: 8000, messages: [{ role: "user", content: prompt }] }),
     });
     const data = await res.json();
-    if (data.error) throw new Error(typeof data.error === "string" ? data.error : "error");
+    if (data.error) {
+      const msg = typeof data.error === "string" ? data.error : (data.error.message || JSON.stringify(data.error));
+      throw new Error(msg);
+    }
     const text = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("\n");
-    if (!text) throw new Error("Empty response");
+    if (!text) throw new Error("Empty response from the model.");
+    if (data.stop_reason === "max_tokens" && !/===TEXT===/.test(text)) {
+      throw new Error("The model ran out of room before writing the text. Try a shorter length.");
+    }
     currentParsed = parseSections(text);
     renderOutput(cfg);
   } catch (e) {
     document.getElementById("output").innerHTML = "";
     const err = document.getElementById("error");
-    err.textContent = "Generation failed. Check the connection and try again.";
+    err.textContent = "Generation failed: " + (e && e.message ? e.message : "unknown error");
     err.classList.remove("hidden");
   } finally {
     btn.disabled = false;
