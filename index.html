@@ -143,6 +143,8 @@
   }
   .hint { font-size: 11px; color: #777; line-height: 1.45; margin: 5px 0 0; }
   .req { color: #b00020; font-weight: normal; font-size: 10px; letter-spacing: 0; }
+  .opt { color: #999; font-weight: normal; font-size: 10px; letter-spacing: 0; text-transform: none; font-variant: normal; }
+  .link { color: var(--blue); text-decoration: underline; white-space: nowrap; }
 
   /* chips can be disabled (Independent needs a decoding stage) */
   .chip:disabled { opacity: .4; cursor: not-allowed; }
@@ -196,14 +198,20 @@
     <!-- ---------- 2. WHAT THEY CAN READ ---------- -->
     <div class="grp">
       <div class="grp-h"><span class="grp-n">2</span> What they can read</div>
+      <div class="hint" style="margin:0 0 12px">Give whichever measure you have. At least one.</div>
 
-      <label class="lbl">Decoding stage <span class="req" id="stage-req"></span></label>
+      <label class="lbl">Reading level</label>
+      <input type="text" id="f-comp" placeholder="Lexile (600L), grade equivalent (3rd), or WCPM" />
+      <div class="hint">The measure most teachers have. Sets the text's level.</div>
+
+      <label class="lbl">Decoding stage <span class="opt">optional — more precise</span></label>
       <select id="f-stage"></select>
       <div class="hint" id="stage-hint"></div>
-
-      <label class="lbl">Comprehension level</label>
-      <input type="text" id="f-comp" placeholder="Lexile, wcpm, or grade equivalent" />
-      <div class="hint">What they understand with support. Separate from decoding.</div>
+      <div class="hint">
+        Constrains the exact phonics patterns. If you have it, use it.
+        <a href="https://ufli.education.ufl.edu/wp-content/uploads/2025/08/UFLIAssessment_081025_v2.pdf"
+           target="_blank" rel="noopener" class="link">Free UFLI placement test →</a>
+      </div>
 
       <label class="lbl">Reading target</label>
       <div class="chips" id="f-target"></div>
@@ -418,30 +426,38 @@ function buildControls() {
   });
   targetHint.textContent = TARGET_HINTS[ui.readingTarget];
 
-  // Independent requires a decoding stage. Without one it is a guess
-  // dressed up as precision — so gate it rather than silently inferring.
+  // Independent requires SOME level — either measure will do. UFLI is more
+  // precise (exact phonics patterns); a reading level alone means decodability
+  // is estimated, not exact. Say so rather than implying false precision.
   function syncGate() {
     const s = STAGES.find((x) => x.id === stage.value);
-    const indep = target.querySelector('[data-target="Independent"]');
     const hasStage = !!(s && s.id);
+    const hasLevel = !!document.getElementById("f-comp").value.trim();
+    const anyLevel = hasStage || hasLevel;
+    const indep = target.querySelector('[data-target="Independent"]');
 
     stageHint.textContent = hasStage ? s.ufli : "";
-    document.getElementById("stage-req").textContent =
-      ui.readingTarget === "Independent" && !hasStage ? "required" : "";
 
-    indep.disabled = !hasStage;
-    if (!hasStage && ui.readingTarget === "Independent") {
+    indep.disabled = !anyLevel;
+    if (!anyLevel && ui.readingTarget === "Independent") {
       ui.readingTarget = "Instructional";
       [...target.children].forEach((c) =>
         c.classList.toggle("on", c.dataset.target === "Instructional")
       );
       targetHint.textContent = TARGET_HINTS.Instructional;
     }
-    document.getElementById("gen-hint").textContent = !hasStage
-      ? "Pick a decoding stage to use Independent."
-      : "";
+
+    const gen = document.getElementById("gen-hint");
+    if (!anyLevel) {
+      gen.textContent = "Add a reading level or decoding stage to use Independent.";
+    } else if (ui.readingTarget === "Independent" && !hasStage) {
+      gen.textContent = "No decoding stage given — decodability will be estimated from the reading level, not exact.";
+    } else {
+      gen.textContent = "";
+    }
   }
   stage.onchange = syncGate;
+  document.getElementById("f-comp").addEventListener("input", syncGate);
   syncGate();
 
   // phonics pattern field only appears when practising a pattern
@@ -563,32 +579,41 @@ function checked(id) { return document.getElementById(id).checked; }
 // ---------------------------------------------------------------------
 function INDEPENDENT_RULES(profile) {
   const stage = resolveStage(profile);
-  const lvl = `${stage.label.split(" (")[0]} (${stage.ufli})`;
+  const level = profile.comprehension;
   const who = profile.name || "this student";
   const culture = profile.culture || "(not given)";
+
+  const decodingBlock = stage
+    ? `DECODING STAGE: ${stage.label.split(" (")[0]} (${stage.ufli})
+DECODABLE PATTERNS (cumulative — everything at or below this stage): ${stage.decodable}
+- Use ONLY these patterns. Nothing beyond them.`
+    : `NO DECODING STAGE GIVEN. The only measure is the reading level: ${level || "(none)"}.
+- Work from that reading level. Keep words high-frequency and short; keep sentences simple.
+- Decodability here is ESTIMATED, not exact — you cannot verify phonics patterns without a stage. Do not pretend otherwise. Say so in the teacher note.`;
+
   return `INDEPENDENT LEVEL — HARD CONSTRAINT.
 
-The student must decode this text COLD, unaided, at 90% accuracy or better.
+The student must read this text COLD, unaided, at 90% accuracy or better. Nine of every ten words readable without help.
 
-DECODING LEVEL: ${lvl}
-DECODABLE PATTERNS (cumulative — everything at or below this level): ${stage.decodable}
+${decodingBlock}
+${level && stage ? `Reading level (secondary): ${level}` : ""}
 
 ======================================================================
 READ THIS FIRST — THE MOST COMMON FAILURE, AND IT IS A TOTAL FAILURE
 ======================================================================
-When told to write at a low decoding level, models cheat: they keep the words simple by making the SUBJECT generic. They drop the real topic — the history, the community, the conflict, the idea — and write a bland little vignette. A boy fixes a car. Nothing happens. Nobody is from anywhere.
+When told to write at a low level, models cheat: they keep the words simple by making the SUBJECT generic. They drop the real topic — the history, the community, the craft, the idea — and write a bland vignette. A boy fixes a car. Nothing happens. Nobody is from anywhere.
 
-THIS IS A FAILED TEXT. Hitting 90% decodable does not redeem it. A culturally empty or intellectually empty text FAILS THE ASSIGNMENT COMPLETELY.
+THIS IS A FAILED TEXT. Hitting 90% does not redeem it. A culturally empty or intellectually empty text FAILS COMPLETELY.
 
-Cultural richness lives in SUBJECT MATTER AND SPECIFICITY — never in long words or complex syntax. A text can be entirely one-syllable words and still be about East Los Angeles in 1948, about laws written to stop a community, about what they built anyway. SPECIFICITY IS FREE. Real names, real places, real years, real stakes cost nothing in decodability.
+Cultural richness lives in SUBJECT MATTER AND SPECIFICITY — never in long words or complex syntax. A text can be entirely one-syllable words and still be about East Los Angeles in 1958, about what people made and how they made it. SPECIFICITY IS FREE. Real names, real places, real years cost nothing in readability.
 
 REQUIRED, for any real person, place, or event:
 - A real named PLACE. Not "a town." → "East Los Angeles."
-- A real YEAR or era. Not "long ago." → "in 1958." (Constitution rule: date AND geographic context.)
+- A real YEAR or era. Not "long ago." → "in 1958." (Constitution: date AND geographic context.)
 - Real named PEOPLE where they exist.
-- A real IDEA. The text must be ABOUT something, not just a pleasant moment. But an idea is NOT the same as a fight. Craft, mastery, invention, patience, style, community, inheritance — what people made and how they made it — are all real ideas, and they are enough. A text about how a thing is built, and who taught whom, and what it means to the people who make it, has full conceptual depth with no antagonist in it.
-- DO NOT MANUFACTURE CONFLICT. Do not add a law, a villain, a police officer, or a struggle that the teacher did not ask for. Never assume a community's story needs oppression in it to be worth telling — the achievement IS the story. (Constitution rule: never default to tragedy. Center what people built.)
-- If a struggle IS genuinely central and was requested: tell it honestly. Do not imply a tidy victory that did not happen. If a law stood for decades, say so. If the work took years of organizing, say that — resistance is a long grind, not a single defiant gesture. Never trade truth for a satisfying ending.
+- A real IDEA. The text must be ABOUT something. But an idea is NOT the same as a fight. Craft, mastery, invention, patience, style, community, inheritance — what people made and how they made it — are real ideas, and they are enough. A text about how a thing is built, who taught whom, and what it means to the people who make it has full conceptual depth with no antagonist in it.
+- DO NOT MANUFACTURE CONFLICT. Do not add a law, a villain, a police officer, or a struggle the teacher did not ask for. Never assume a community's story needs oppression in it to be worth telling — the achievement IS the story. (Constitution: never default to tragedy. Center what people built.)
+- If a struggle IS genuinely central and was requested: tell it honestly. Do not imply a tidy victory that did not happen. If a law stood for decades, say so. Resistance is a long grind, not a single defiant gesture. Never trade truth for a satisfying ending.
 - FICTION needs a real stake or tension — something at risk, resisted, or refused. Not just a pleasant moment.
 - Characters must reflect ${who}'s world (background: ${culture}). NEVER a generic default name.
 - If your draft could be about anyone, anywhere, START OVER.
@@ -596,11 +621,11 @@ REQUIRED, for any real person, place, or event:
 ======================================================================
 THE CONSTRAINT HIERARCHY — obey absolutely
 ======================================================================
-NEVER YIELDS:  decoding level · conceptual depth · cultural integrity · factual truth
+NEVER YIELDS:  reading level · conceptual depth · cultural integrity · factual truth
 YIELDS, IN ORDER:  vocabulary precision  →  sentence structure  →  FORM
 
 Exhaust every yielding option before touching content.
-- Can't name a concept at this level? SHOW it. You may not write "hydraulic system" — but you CAN write: "They put a pump in the car. Flip a switch — it lifts. Flip it back — it drops. Now it passes the rule." Concept intact; only vocabulary yielded.
+- Can't name a concept at this level? SHOW it. You may not write "hydraulic system" — but you CAN write: "They put a pump in the car. Flip a switch — it lifts. Flip it back — it drops." Concept intact; only vocabulary yielded.
 - Prose going flat or thin? SWITCH TO FREE VERSE — BEFORE you simplify the subject. Form yields; content does not.
 
 ======================================================================
@@ -612,21 +637,20 @@ Short sentences in PROSE read as broken. Short lines in VERSE read as craft. Ver
 - The reader is ${profile.age || "an adolescent"}. Never write down to them.
 
 ======================================================================
-DECODING RULES
+WRITING RULES
 ======================================================================
-- Use ONLY the decodable patterns listed above. Nothing beyond them.
-- Prefer one-syllable words. Multisyllabic only if EVERY syllable uses a listed pattern.
+- Prefer one-syllable words. Multisyllabic only when every syllable is decodable at this level.
 - The ONLY permitted off-level words are PROPER NOUNS — real names of real people and places. Use them freely; they carry the culture and cost nothing.
 - Sentences (or verse lines): 8 words or fewer. No embedded clauses.
-- NEVER split a word into syllables to fake decodability. Writing "Sat ur day" is FORBIDDEN — it is a broken word, not a decodable one. If a word is too hard, CHOOSE A DIFFERENT WORD ("one day").
-- Unsure whether a word is decodable here? DO NOT USE IT.
+- NEVER split a word into syllables to fake decodability. "Sat ur day" is FORBIDDEN — it is a broken word. Choose a different word ("one day").
+- Unsure whether a word works at this level? DO NOT USE IT.
 
 ======================================================================
 LAYER 2 VOCABULARY
 ======================================================================
 Words too advanced to decode (hydraulic, generation, inspection) must NOT appear in the text at all. Keep them out; list them in the teacher note to FRONT-LOAD verbally. The student learns them from the teacher, not by decoding.
 
-ITALICS / WORD BANK: italicize ONLY on-level practice words. NEVER italicize the hardest words in the text — if a word is too hard to decode, it should not be in the text at all.`;
+ITALICS / WORD BANK: italicize ONLY on-level practice words. NEVER italicize the hardest words in the text.`;
 }
 
 function buildPrompt(cfg, adjustment) {
@@ -704,7 +728,7 @@ A short note FOR THE TEACHER (never shown to the student). Exactly these three l
 FORM: name the form you used (prose, free verse, letter, dialogue) and, in one sentence, why — especially if you shifted away from prose.
 FRONT-LOAD: list the Layer 2 words you kept OUT of the text and that the teacher should teach verbally before reading (e.g. hydraulic, generation). If none, write "none".
 WATCH: one sentence on what to watch for as this student reads.
-VERIFY: if this text names real people, organizations, dates, or events, list them here for the teacher to fact-check before use. Named organizations paired with specific years are the most error-prone. If the text asserts no specific facts, write "none".`);
+VERIFY: if this text names real people, organizations, dates, or events, list them here for the teacher to fact-check before use. Named organizations paired with specific years are the most error-prone. If the text asserts no specific facts, write "none".${resolveStage(profile) ? "" : "\nPRECISION: state that no decoding stage was given, so decodability is estimated from the reading level rather than verified against phonics patterns. Recommend the UFLI placement test for an exact stage."}`);
   }
   p.push(fmt.join("\n\n"));
   p.push(`Sections to include, in this order: ${sections.join(" ")}`);
