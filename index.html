@@ -724,6 +724,8 @@ VERIFY: if this text names real people, organizations, dates, or events, list th
   }
   p.push(fmt.join("\n\n"));
   p.push(`Sections to include, in this order: ${sections.join(" ")}`);
+  p.push(`OUTPUT DISCIPLINE — READ LAST, OBEY ABSOLUTELY:
+Your FIRST characters must be "===TEXT===". Do NOT write anything before it — no planning, no reasoning, no word-by-word phonics audit, no drafts, no "Let me think". Do all of that work in your head, invisibly. Output ONLY the marked sections and their content. Any text that appears before ===TEXT=== is a failure.`);
 
 
   if (adjustment === "simpler") {
@@ -970,13 +972,7 @@ async function generate(adjustment) {
       body: JSON.stringify({
         model: MODEL,
         max_tokens: 4000,
-        messages: [
-          { role: "user", content: prompt },
-          // Prefill: forces the model to begin AT the first section marker.
-          // It cannot write planning notes or a word-by-word audit, because
-          // there is nowhere for them to go. Cuts tokens and latency hard.
-          { role: "assistant", content: "===TEXT===" },
-        ],
+        messages: [{ role: "user", content: prompt }],
       }),
     });
     const data = await res.json();
@@ -986,8 +982,10 @@ async function generate(adjustment) {
     }
     let text = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("\n");
     if (!text) throw new Error("Empty response from the model.");
-    // The prefill isn't echoed back — put it back so the parser sees it.
-    if (!/^===TEXT===/.test(text.trim())) text = "===TEXT===\n" + text;
+    // Belt-and-suspenders: strip anything the model wrote before the first marker.
+    const cut = text.indexOf("===TEXT===");
+    if (cut > 0) text = text.slice(cut);
+    else if (cut < 0) text = "===TEXT===\n" + text;
     if (data.stop_reason === "max_tokens" && !/===TEXT===/.test(text)) {
       throw new Error("The model ran out of room before writing the text. Try a shorter length.");
     }
