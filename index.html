@@ -641,6 +641,7 @@ WRITING RULES
 ======================================================================
 - Prefer one-syllable words. Multisyllabic only when every syllable is decodable at this level.
 - The ONLY permitted off-level words are PROPER NOUNS — real names of real people and places. Use them freely; they carry the culture and cost nothing.
+- SUBSTITUTE common off-level content words for decodable ones. Do not repeat an off-level word just because it is the obvious choice. "car" is r-controlled and off-level → use "rod" (hot rod). "truck" → "rig" if it fits. Find the decodable word that carries the same meaning. If a core content word simply has no decodable substitute, use it once, then rely on "it".
 - Sentences (or verse lines): 8 words or fewer. No embedded clauses.
 - NEVER split a word into syllables to fake decodability. "Sat ur day" is FORBIDDEN — it is a broken word. Choose a different word ("one day").
 - Unsure whether a word works at this level? DO NOT USE IT.
@@ -650,7 +651,7 @@ LAYER 2 VOCABULARY
 ======================================================================
 Words too advanced to decode (hydraulic, generation, inspection) must NOT appear in the text at all. Keep them out; list them in the teacher note to FRONT-LOAD verbally. The student learns them from the teacher, not by decoding.
 
-ITALICS / WORD BANK: italicize ONLY on-level practice words. NEVER italicize the hardest words in the text.`;
+ITALICS / WORD BANK: mark on-level practice words with SINGLE asterisks only (*word*). NEVER use double asterisks (**bold**) anywhere. NEVER mark a whole line or phrase — only individual practice words. NEVER mark the hardest words in the text.`;
 }
 
 function buildPrompt(cfg, adjustment) {
@@ -791,12 +792,18 @@ WHY:`;
 // Word bank = the italicised words in the text. Derived in code, so it can
 // never drift out of sync with the passage (and costs no tokens).
 function deriveWordBank(textBlock) {
+  // Strip **bold** first so it can't be mistaken for *italics*.
+  const cleaned = textBlock.replace(/\*\*/g, "");
   const seen = [];
-  const re = /\*([^*]+)\*/g;
+  const re = /\*([^*\n]+)\*/g;   // single-asterisk italics only, never across a line break
   let m;
-  while ((m = re.exec(textBlock)) !== null) {
+  while ((m = re.exec(cleaned)) !== null) {
     const w = m[1].trim();
-    if (w && !seen.some((x) => x.toLowerCase() === w.toLowerCase())) seen.push(w);
+    // A target word is 1-2 short tokens, not a whole sentence or a fragment.
+    const tokens = w.split(/\s+/);
+    if (tokens.length > 2) continue;
+    if (!/[A-Za-z]/.test(w)) continue;
+    if (!seen.some((x) => x.toLowerCase() === w.toLowerCase())) seen.push(w);
   }
   return seen.map((w, i) => `${i + 1}. ${w}`).join("\n");
 }
