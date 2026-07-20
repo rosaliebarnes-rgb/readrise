@@ -1,0 +1,19 @@
+# Local env files — hold the real Anthropic key / Vercel tokens; NEVER commit
+.env
+.env.local
+.env*.local
+.env*
+# ...but DO commit the documentation template
+!.env.example
+
+# Vercel CLI link/build state
+.vercel
+
+# Dependencies (none today, but guard against future adds)
+node_modules
+
+# Claude Code local settings (machine-specific)
+.claude/settings.local.json
+
+# macOS cruft
+.DS_Store
