@@ -52,13 +52,28 @@ vercel.json          # routing / function config
 
 ## 2. Local dev workflow (Claude Code)
 
-This is a hosted app with a serverless function, so **don't just open `index.html` in a browser**
-— the `api/generate.js` route won't run. Use the Vercel CLI so the function runs locally:
+> **Claude runs all command-line work in this project.** The user does not want to run shell
+> commands themselves. When a task needs the terminal — git, `vercel`, `gh`, `npm`, `vercel dev`,
+> deploys, checking logs — **Claude executes it directly** via its tools rather than printing
+> commands for the user to copy-paste. Exceptions are only the things Claude *cannot* do: browser
+> logins (Claude drives them and hands over the one-time code), and anything requiring the user's
+> secrets (e.g. pasting the real Anthropic key into `.env.local`). Report what was run and the
+> result; don't hand back a to-do list of commands.
+
+**Toolchain is already installed** (2026-07-19): Node via **nvm** (`~/.nvm`), `vercel` (global
+npm), `gh` in `~/.local/bin`. GitHub (`rosaliebarnes-rgb`, HTTPS) and Vercel
+(scope `rosalie-s-projects3`, project `readrise`) are authenticated and linked. Node is **not on
+the default PATH**, so a plain non-login shell won't find `node`/`npm`/`vercel`/`gh`. Prefix
+terminal commands with:
 
 ```bash
-npm i -g vercel          # once
-vercel login             # once
-vercel link              # link this folder to the existing ReadRise project
+export NVM_DIR="$HOME/.nvm"; \. "$NVM_DIR/nvm.sh" >/dev/null 2>&1; export PATH="$HOME/.local/bin:$PATH"
+```
+
+This is a hosted app with a serverless function, so **don't just open `index.html` in a browser**
+— the `api/generate.js` route won't run. Run it locally with the Vercel CLI (already linked):
+
+```bash
 vercel dev               # serves index.html AND api/generate.js locally, usually :3000
 ```
 
