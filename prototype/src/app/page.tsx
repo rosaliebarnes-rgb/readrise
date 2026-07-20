@@ -122,6 +122,13 @@ export default function Home() {
     }
   }
 
+  // Stage is optional and clearable. Independent needs a stage OR a reading
+  // level; if clearing the stage leaves neither, fall back to Instructional.
+  function chooseStage(id: string | null) {
+    setStage(id);
+    if (!id && !level.trim() && target === "Independent") setTarget("Instructional");
+  }
+
   const StepHead = ({ n, title }: { n: number; title: string }) => {
     const done = step > n;
     const active = step === n;
@@ -231,7 +238,7 @@ export default function Home() {
                       label="Decoding stage — optional, more precise"
                       hint="Highest stage taught. Everything at or below it is fair game; nothing above."
                     >
-                      <PhonicsLadder value={stage} onChange={setStage} />
+                      <PhonicsLadder value={stage} onChange={chooseStage} />
                     </Field>
                     <Field label="Reading target">
                       <div className="flex gap-1.5">

@@ -7,11 +7,12 @@ export default function PhonicsLadder({
   onChange,
 }: {
   value: string | null;
-  onChange: (id: string) => void;
+  onChange: (id: string | null) => void;
 }) {
   const selectedIndex = STAGES.findIndex((s) => s.id === value);
 
   return (
+    <div>
     <div className="rounded-xl border border-hair bg-panel p-1.5">
       {STAGES.map((stage, i) => {
         const isSelected = i === selectedIndex;
@@ -21,7 +22,7 @@ export default function PhonicsLadder({
           <button
             key={stage.id}
             type="button"
-            onClick={() => onChange(stage.id)}
+            onClick={() => onChange(isSelected ? null : stage.id)}
             aria-pressed={isSelected}
             className={`flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left transition-colors ${
               isSelected ? "bg-pine-soft" : "hover:bg-pine-soft/50"
@@ -57,6 +58,16 @@ export default function PhonicsLadder({
           </button>
         );
       })}
+    </div>
+      {value && (
+        <button
+          type="button"
+          onClick={() => onChange(null)}
+          className="mt-1.5 text-[11.5px] text-ink-soft underline underline-offset-2 hover:text-pine"
+        >
+          Clear decoding stage
+        </button>
+      )}
     </div>
   );
 }
