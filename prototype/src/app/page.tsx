@@ -1,20 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { LENGTHS, MODES, SAMPLE, STAGES, type SamplePacket } from "@/lib/domain";
+import { LENGTHS, MODES, STAGES } from "@/lib/domain";
 import { READER_DEFAULT, type ReaderSettings } from "@/lib/reader";
+import type { GenConfig, ParsedSections } from "@/lib/types";
 import PhonicsLadder from "@/components/PhonicsLadder";
 import OutputPanel from "@/components/OutputPanel";
 
 type Target = "Independent" | "Instructional";
-
-const OUTPUTS = [
-  { id: "text", label: "Reading text", locked: true, on: true },
-  { id: "wordbank", label: "Word bank", on: true },
-  { id: "comprehension", label: "Comprehension questions", on: true },
-  { id: "teacher", label: "Teacher note", on: true },
-  { id: "twr", label: "TWR writing activities", on: false },
-];
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
@@ -29,9 +22,18 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 const inputCls =
   "w-full rounded-lg border border-hair bg-white px-3 py-2 text-[14px] text-ink placeholder:text-ink-soft/60 focus:border-pine";
 
+type ToggleKey = Exclude<keyof GenConfig["outputs"], "text">;
+const OUTPUT_TOGGLES: { key: ToggleKey; label: string }[] = [
+  { key: "wordGrid", label: "Word bank" },
+  { key: "wordCount", label: "Word count by paragraph" },
+  { key: "comprehension", label: "Comprehension questions" },
+  { key: "inference", label: "Inference questions" },
+  { key: "twr", label: "TWR writing activities" },
+];
+
 export default function Home() {
   const [step, setStep] = useState(1);
-  const [mode, setMode] = useState<"one" | "set">("one");
+  const [tab, setTab] = useState<"one" | "set">("one");
 
   const [name, setName] = useState("Marisol");
   const [age, setAge] = useState("15");
@@ -42,38 +44,80 @@ export default function Home() {
   const [stage, setStage] = useState<string | null>("vce");
   const [target, setTarget] = useState<Target>("Independent");
 
-  const [genre, setGenre] = useState("Narrative nonfiction");
+  const [mode, setMode] = useState("Narrative nonfiction");
+  const [genre, setGenre] = useState("");
   const [length, setLength] = useState("Short");
+  const [goal, setGoal] = useState("");
+  const [phonicsOn, setPhonicsOn] = useState(false);
+  const [phonicsPattern, setPhonicsPattern] = useState("");
+
+  const [outputs, setOutputs] = useState({
+    wordGrid: true,
+    wordCount: false,
+    comprehension: true,
+    inference: false,
+    twr: false,
+  });
 
   const [reader, setReader] = useState<ReaderSettings>(READER_DEFAULT);
-  const [generating, setGenerating] = useState(false);
-  const [packet, setPacket] = useState<SamplePacket | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [parsed, setParsed] = useState<ParsedSections | null>(null);
 
   const stageObj = STAGES.find((s) => s.id === stage) || null;
   const summaries: Record<number, string> = {
     1: `${name || "Unnamed"} · age ${age || "—"}`,
     2: `${stageObj ? stageObj.label : level || "level not set"} · ${target}`,
-    3: `${genre} · ${length}`,
+    3: `${mode} · ${length}`,
   };
+  const subtitle = `${target}${stageObj ? ` · ${stageObj.label}` : level ? ` · ${level}` : ""}`;
 
-  function generate() {
-    setGenerating(true);
-    setPacket(null);
-    window.setTimeout(() => {
-      setPacket(SAMPLE);
-      setGenerating(false);
-    }, 900);
+  function buildConfig(): GenConfig {
+    return {
+      profile: {
+        name,
+        age,
+        culture,
+        interests,
+        stage: stage || "",
+        comprehension: level,
+        phonicsOn,
+        phonicsLevel: phonicsPattern,
+      },
+      readingTarget: target,
+      mode,
+      genre,
+      length,
+      goal,
+      outputs: { text: true, ...outputs },
+    };
+  }
+
+  async function generate(adjustment: "simpler" | "tighter" | null = null) {
+    setBusy(true);
+    setError(null);
+    if (!adjustment) setParsed(null);
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ config: buildConfig(), adjustment }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || `Request failed (${res.status}).`);
+      setParsed(data.parsed as ParsedSections);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Generation failed.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   const StepHead = ({ n, title }: { n: number; title: string }) => {
     const done = step > n;
     const active = step === n;
     return (
-      <button
-        type="button"
-        onClick={() => setStep(n)}
-        className="flex w-full items-center gap-3 py-3 text-left"
-      >
+      <button type="button" onClick={() => setStep(n)} className="flex w-full items-center gap-3 py-3 text-left">
         <span
           className={`flex h-6 w-6 flex-none items-center justify-center rounded-full text-[12px] font-semibold ${
             active || done ? "bg-pine text-white" : "bg-hair text-ink-soft"
@@ -93,28 +137,26 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
-      {/* ---------------- LEFT: setup ---------------- */}
       <aside className="w-full border-b border-hair bg-panel md:sticky md:top-0 md:h-screen md:w-[400px] md:flex-none md:overflow-y-auto md:border-r md:border-b-0">
         <div className="px-6 pt-6 pb-24">
           <div className="flex items-center gap-2">
             <h1 className="font-display text-[24px] font-bold text-pine">ReadRise</h1>
             <span className="rounded-full border border-hair px-2 py-0.5 text-[10.5px] tracking-wide text-ink-soft uppercase">
-              prototype
+              preview
             </span>
           </div>
           <p className="mt-1 mb-5 text-[12.5px] text-ink-soft">
             Culturally alive texts a reader can decode on their own.
           </p>
 
-          {/* mode tabs */}
           <div className="mb-5 flex gap-1.5">
             {(["one", "set"] as const).map((m) => (
               <button
                 key={m}
                 type="button"
-                onClick={() => setMode(m)}
+                onClick={() => setTab(m)}
                 className={`flex-1 rounded-lg border px-3 py-2 text-[13px] font-medium transition-colors ${
-                  mode === m
+                  tab === m
                     ? "border-pine bg-pine-soft text-pine"
                     : "border-hair bg-white text-ink-soft hover:bg-pine-soft/40"
                 }`}
@@ -124,14 +166,13 @@ export default function Home() {
             ))}
           </div>
 
-          {mode === "set" ? (
+          {tab === "set" ? (
             <div className="rounded-xl border border-dashed border-hair p-5 text-[13px] leading-relaxed text-ink-soft">
-              The class-set builder lives here — one anchor topic, a vary axis, and a level
-              spread with shared vocabulary held constant. Not wired up in this prototype.
+              The class-set builder lands in a later phase — one anchor topic, a vary axis, and a level spread with
+              shared vocabulary held constant.
             </div>
           ) : (
             <div className="divide-y divide-hair">
-              {/* STEP 1 */}
               <section>
                 <StepHead n={1} title="Who is this for" />
                 {step === 1 && (
@@ -165,7 +206,6 @@ export default function Home() {
                 )}
               </section>
 
-              {/* STEP 2 */}
               <section>
                 <StepHead n={2} title="What they can read" />
                 {step === 2 && (
@@ -180,7 +220,7 @@ export default function Home() {
                     </Field>
                     <Field
                       label="Decoding stage — optional, more precise"
-                      hint="Pick the highest stage they've been taught. Everything at or below it is fair game; nothing above."
+                      hint="Highest stage taught. Everything at or below it is fair game; nothing above."
                     >
                       <PhonicsLadder value={stage} onChange={setStage} />
                     </Field>
@@ -224,17 +264,24 @@ export default function Home() {
                 )}
               </section>
 
-              {/* STEP 3 */}
               <section>
                 <StepHead n={3} title="What to make" />
                 {step === 3 && (
                   <div className="pb-5">
                     <Field label="Mode">
-                      <select className={inputCls} value={genre} onChange={(e) => setGenre(e.target.value)}>
+                      <select className={inputCls} value={mode} onChange={(e) => setMode(e.target.value)}>
                         {MODES.map((m) => (
                           <option key={m}>{m}</option>
                         ))}
                       </select>
+                    </Field>
+                    <Field label="Genre — optional">
+                      <input
+                        className={inputCls}
+                        placeholder="e.g. profile, memoir, how-it-works"
+                        value={genre}
+                        onChange={(e) => setGenre(e.target.value)}
+                      />
                     </Field>
                     <Field label="Length">
                       <div className="flex flex-wrap gap-1.5">
@@ -254,31 +301,57 @@ export default function Home() {
                         ))}
                       </div>
                     </Field>
+                    <Field label="Learning goal — optional" hint="Shapes the comprehension questions.">
+                      <input
+                        className={inputCls}
+                        placeholder="e.g. finding evidence, main idea, vocabulary in context"
+                        value={goal}
+                        onChange={(e) => setGoal(e.target.value)}
+                      />
+                    </Field>
+                    <label className="mt-4 flex items-center gap-2.5 text-[13.5px] text-ink">
+                      <input
+                        type="checkbox"
+                        checked={phonicsOn}
+                        onChange={(e) => setPhonicsOn(e.target.checked)}
+                        className="h-4 w-4 accent-pine"
+                      />
+                      Practice a phonics pattern this week
+                    </label>
+                    {phonicsOn && (
+                      <input
+                        className={`${inputCls} mt-2`}
+                        placeholder="Pattern to practice (e.g. VCe, suffixes)"
+                        value={phonicsPattern}
+                        onChange={(e) => setPhonicsPattern(e.target.value)}
+                      />
+                    )}
                     <Field label="Include">
                       <div className="space-y-1.5">
-                        {OUTPUTS.map((o) => (
-                          <label
-                            key={o.id}
-                            className={`flex items-center gap-2.5 text-[13.5px] ${o.locked ? "text-ink-soft" : "text-ink"}`}
-                          >
+                        <label className="flex items-center gap-2.5 text-[13.5px] text-ink-soft">
+                          <input type="checkbox" checked disabled className="h-4 w-4 accent-pine" />
+                          Reading text <span className="text-[11px]">always</span>
+                        </label>
+                        {OUTPUT_TOGGLES.map((o) => (
+                          <label key={o.key} className="flex items-center gap-2.5 text-[13.5px] text-ink">
                             <input
                               type="checkbox"
-                              defaultChecked={o.on}
-                              disabled={o.locked}
+                              checked={outputs[o.key]}
+                              onChange={(e) => setOutputs((prev) => ({ ...prev, [o.key]: e.target.checked }))}
                               className="h-4 w-4 accent-pine"
                             />
                             {o.label}
-                            {o.locked && <span className="text-[11px] text-ink-soft">always</span>}
                           </label>
                         ))}
                       </div>
                     </Field>
                     <button
                       type="button"
-                      onClick={generate}
-                      className="mt-6 w-full rounded-lg bg-pine py-3 text-[15px] font-semibold text-white shadow-sm hover:brightness-110"
+                      onClick={() => generate(null)}
+                      disabled={busy}
+                      className="mt-6 w-full rounded-lg bg-pine py-3 text-[15px] font-semibold text-white shadow-sm hover:brightness-110 disabled:opacity-60"
                     >
-                      Generate text
+                      {busy ? "Writing…" : "Generate text"}
                     </button>
                   </div>
                 )}
@@ -288,23 +361,40 @@ export default function Home() {
         </div>
       </aside>
 
-      {/* ---------------- RIGHT: output ---------------- */}
       <main className="flex-1 bg-ground">
         <div className="mx-auto max-w-3xl px-6 py-10 md:px-10">
-          {generating ? (
+          {error && (
+            <div className="mb-6 rounded-xl border border-coral-ink/30 bg-coral-bg px-4 py-3 text-[14px] text-coral-ink">
+              {error}
+            </div>
+          )}
+          {busy && !parsed ? (
             <div className="fade-in mt-24 text-center text-[15px] text-ink-soft">
               <div className="mx-auto mb-4 h-6 w-6 animate-spin rounded-full border-2 border-hair border-t-pine" />
               Writing the text…
             </div>
-          ) : packet ? (
-            <OutputPanel packet={packet} reader={reader} onReaderChange={setReader} />
+          ) : parsed ? (
+            <>
+              {busy && <div className="mb-3 text-[13px] text-ink-soft">Updating…</div>}
+              <OutputPanel
+                parsed={parsed}
+                subtitle={subtitle}
+                reader={reader}
+                onReaderChange={setReader}
+                onAdjust={(a) => generate(a)}
+                busy={busy}
+                phonicsOn={phonicsOn}
+              />
+            </>
           ) : (
-            <div className="mt-24 text-center">
-              <p className="mx-auto max-w-sm text-[15px] leading-relaxed text-ink-soft">
-                Set up the reader on the left, then generate a text. The sample shows an
-                Independent-level text at the VCe decoding stage.
-              </p>
-            </div>
+            !error && (
+              <div className="mt-24 text-center">
+                <p className="mx-auto max-w-sm text-[15px] leading-relaxed text-ink-soft">
+                  Set up the reader on the left, then generate a text. It writes a culturally specific,
+                  decodable-cold passage with the scaffolds you choose.
+                </p>
+              </div>
+            )
           )}
         </div>
       </main>

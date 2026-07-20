@@ -20,9 +20,9 @@ export const STAGES: Stage[] = [
 ];
 
 export const LENGTHS = [
-  { id: "Short", label: "Short", words: "~150 words" },
-  { id: "Medium", label: "Medium", words: "~300 words" },
-  { id: "Long", label: "Long", words: "~500 words" },
+  { id: "Short", label: "Short", words: "~150 words", target: 150 },
+  { id: "Medium", label: "Medium", words: "~300 words", target: 300 },
+  { id: "Long", label: "Long", words: "~500 words", target: 500 },
 ];
 
 export const MODES = ["Nonfiction", "Narrative nonfiction", "Fiction", "Either"];
