@@ -46,6 +46,16 @@ Production `readrise` (the single-file `index.html` app) is untouched until cuto
       themselves vary ("Find the sentence that shows…", "Which line tells you…",
       "Copy the words that prove…", "Where does the text say…"). Renders once on
       screen, in Copy, and in the PDF.
+- [x] **Decodability prompt-tightening pass.** Root cause: each stage's `decodable`
+      field had degraded to example words ("cat, red, sit") instead of the phonics
+      scope, and the prompt never said what's *off-limits*. Restored the full
+      cumulative scope per stage, added an explicit **"NOT YET"** exclusion list, a
+      per-word check, the one-core-word escape hatch, and a sight-word carve-out.
+      Tighter adherence (esp. Opus 4.8) and off-level vocab now lands in FRONT-LOAD.
+      **Finding:** the absolute-lowest stage (short vowels) stays hard for
+      blend-heavy topics (band/drum/step all need blends) — a real pedagogical
+      limit, not just a prompt bug. Adaptive thinking (per-word audit in thinking
+      blocks) is the likely next lever.
 - [ ] _(add more as you find them)_
 
 > **Deploy note:** for the prototype, use `vercel deploy --prod --force` — a plain
@@ -125,9 +135,12 @@ operation?") are a natural add to either.
     near-Opus reasoning at Sonnet price.
   - Least expensive: Haiku 4.5 ($1/$5) — **false economy for the core text**;
     reserve for fall tiering (definitions/thesaurus/examples).
-  - **Plan:** A/B Sonnet 4.6 vs Sonnet 5 vs Opus 4.8 on 3–4 real profiles before
-    cutover; judge constitution adherence + decodability + cultural richness.
-    Prior: lean Opus 4.8 for core generation, or Sonnet 5 if it matches.
+  - **Bake-off run (2 profiles, thinking off):** Opus 4.8 stayed truthful (no
+    fabricated details about real people), had the best decodability at the hardest
+    level, and centered craft → **leaning Opus 4.8**. Sonnet 5 warm/fast/cheaper but
+    drifted to fiction in a nonfiction slot. Sonnet 4.6 (current) fabricated details
+    about a real person (car name/year for Ron Aguirre) — the clearest strike.
+    _Not yet locked in_ — worth a larger run and a thinking-on comparison first.
 
 ## Closed
 - One-click PDF download → not needed; browser Save as PDF is fine.

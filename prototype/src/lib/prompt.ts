@@ -32,8 +32,11 @@ function independentRules(profile: StudentProfile): string {
 
   const decodingBlock = stage
     ? `DECODING STAGE: ${stage.label} (${stage.ufli})
-DECODABLE PATTERNS (cumulative — everything at or below this stage): ${stage.decodable}
-- Use ONLY these patterns. Nothing beyond them.`
+DECODABLE — use ONLY these patterns (cumulative: everything at or below this stage): ${stage.decodable}.
+NOT YET — do NOT use any word that needs these patterns; they are ABOVE this student's level: ${stage.excludes}.
+- Check EVERY content word against the DECODABLE list, sound by sound, in your head before you write it. If a word contains any NOT-YET pattern, it is OFF-LEVEL: swap it for a decodable word that means the same thing, or drop it — even when the off-level word is the most natural or vivid choice. (At the lowest stages this is hard and that is the point: a plain decodable word beats a vivid off-level one, every time.)
+- The ONLY off-level words allowed are: PROPER NOUNS (real names of real people and places), and at most ONE unavoidable core subject word that has no decodable substitute — use that one word a single time, then refer to "it", and list it in the teacher note under FRONT-LOAD. Every other word must be fully decodable at this stage.
+- Common high-frequency SIGHT WORDS (the, a, is, was, of, to, they, said, you, when, one, are…) are read by sight, not sounded out — they are always fine, even if they contain a blend or digraph. This rule governs CONTENT words, not sight words.`
     : `NO DECODING STAGE GIVEN. The only measure is the reading level: ${level || "(none)"}.
 - Work from that reading level. Keep words high-frequency and short; keep sentences simple.
 - Decodability here is ESTIMATED, not exact — you cannot verify phonics patterns without a stage. Do not pretend otherwise. Say so in the teacher note.`;

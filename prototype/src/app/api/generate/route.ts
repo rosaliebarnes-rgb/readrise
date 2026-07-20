@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { config?: GenConfig; adjustment?: string | null };
+  let body: { config?: GenConfig; adjustment?: string | null; model?: string; noThink?: boolean };
   try {
     body = await req.json();
   } catch {
@@ -32,14 +32,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing generation config." }, { status: 400 });
   }
 
+  // Model override is allowlisted (used by the model bake-off). Default is MODEL.
+  const ALLOWED_MODELS = new Set(["claude-sonnet-4-6", "claude-sonnet-5", "claude-opus-4-8"]);
+  const model = body.model && ALLOWED_MODELS.has(body.model) ? body.model : MODEL;
+  const thinking = body.noThink ? ({ type: "disabled" } as const) : undefined;
+
   const client = new Anthropic({ apiKey: key });
   const prompt = buildPrompt(cfg, adjustment);
 
   try {
     const message = await client.messages.create({
-      model: MODEL,
+      model,
       max_tokens: MAX_TOKENS,
       messages: [{ role: "user", content: prompt }],
+      ...(thinking ? { thinking } : {}),
     });
 
     let text = message.content
@@ -67,7 +73,7 @@ export async function POST(req: Request) {
     if (cfg.outputs.wordGrid) parsed.wordgrid = deriveWordBank(parsed.text);
     if (cfg.outputs.wordCount) parsed.text = appendWordCounts(parsed.text);
 
-    return NextResponse.json({ parsed });
+    return NextResponse.json({ parsed, model, usage: message.usage });
   } catch (e) {
     const error =
       e instanceof Anthropic.APIError

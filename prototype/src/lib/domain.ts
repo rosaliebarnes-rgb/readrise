@@ -5,18 +5,76 @@
 export interface Stage {
   id: string;
   label: string;
+  examples: string; // short, for the ladder UI
   ufli: string;
-  decodable: string;
+  decodable: string; // cumulative phonics scope — drives the prompt
+  excludes: string; // patterns ABOVE this stage — the prompt's "not yet" list
 }
 
 export const STAGES: Stage[] = [
-  { id: "short", label: "Short vowels", ufli: "UFLI L1–L41", decodable: "cat, red, sit" },
-  { id: "blends", label: "Blends & digraphs", ufli: "UFLI L42–L53", decodable: "stop, ship, chin" },
-  { id: "vce", label: "Silent-e / VCe", ufli: "UFLI L54–L62", decodable: "make, ride, home" },
-  { id: "teams", label: "Vowel teams", ufli: "UFLI L63–L78", decodable: "rain, boat, see" },
-  { id: "rcontrol", label: "R-controlled vowels", ufli: "UFLI L79–L98", decodable: "car, bird, corn" },
-  { id: "affixes", label: "Suffixes & prefixes", ufli: "UFLI L99–L118", decodable: "jumping, unlock" },
-  { id: "roots", label: "Multisyllabic / roots", ufli: "UFLI L119–L128", decodable: "Greek & Latin roots" },
+  {
+    id: "short",
+    label: "Short vowels",
+    examples: "cat, red, sit",
+    ufli: "UFLI L1–L41",
+    decodable:
+      "closed syllables with short vowels a/e/i/o/u; single consonants; CVC words (cat, red, sit, hot, bug); the endings -s and -ing on those words",
+    excludes:
+      "consonant blends (st, cl, tr, spr, nd, mp…), consonant digraphs (sh, ch, th, ck, wh, ng), silent-e long vowels (make, ride), vowel teams (ai, ee, oa), r-controlled vowels (ar, er, or), and ANY two-syllable word",
+  },
+  {
+    id: "blends",
+    label: "Blends & digraphs",
+    examples: "stop, ship, chin",
+    ufli: "UFLI L42–L53",
+    decodable:
+      "everything above, plus consonant blends (st, cl, tr, spr, nd, mp…) and consonant digraphs (sh, ch, th, ck, wh, ng)",
+    excludes:
+      "silent-e / VCe long vowels (make, ride, home), vowel teams (ai, ee, oa), r-controlled vowels (ar, er, or), and multisyllabic words",
+  },
+  {
+    id: "vce",
+    label: "Silent-e / VCe",
+    examples: "make, ride, home",
+    ufli: "UFLI L54–L62",
+    decodable: "everything above, plus silent-e long vowels (VCe): make, ride, home, cute, these",
+    excludes:
+      "vowel teams (ai, ay, ee, ea, oa, ow), diphthongs (ou, oi), and r-controlled vowels (ar, er, ir, or, ur)",
+  },
+  {
+    id: "teams",
+    label: "Vowel teams",
+    examples: "rain, boat, see",
+    ufli: "UFLI L63–L78",
+    decodable:
+      "everything above, plus vowel teams (ai, ay, ee, ea, oa, ow, oo) and diphthongs (ou, ow, oi, oy)",
+    excludes: "r-controlled vowels (ar, er, ir, or, ur) and multisyllabic Greek/Latin words",
+  },
+  {
+    id: "rcontrol",
+    label: "R-controlled vowels",
+    examples: "car, bird, corn",
+    ufli: "UFLI L79–L98",
+    decodable: "everything above, plus r-controlled vowels (ar, er, ir, or, ur)",
+    excludes: "multisyllabic words with prefixes/suffixes and Greek/Latin roots",
+  },
+  {
+    id: "affixes",
+    label: "Suffixes & prefixes",
+    examples: "jumping, unlock",
+    ufli: "UFLI L99–L118",
+    decodable:
+      "everything above, plus common prefixes and suffixes on known roots (un-, re-, pre-, -ed, -ing, -ly, -ful, -less)",
+    excludes: "multisyllabic Greek and Latin root words (photo, struct, port…)",
+  },
+  {
+    id: "roots",
+    label: "Multisyllabic / roots",
+    examples: "Greek & Latin roots",
+    ufli: "UFLI L119–L128",
+    decodable: "everything above, plus multisyllabic words with Greek and Latin roots",
+    excludes: "(top of the sequence — all taught patterns are available)",
+  },
 ];
 
 export const LENGTHS = [

@@ -52,7 +52,7 @@ export default function PhonicsLadder({
                 {isSelected && <span className="ml-2 text-[11px] font-normal text-ochre">set here</span>}
               </span>
               <span className="block text-[11px] text-ink-soft">
-                {stage.decodable} · {stage.ufli}
+                {stage.examples} · {stage.ufli}
               </span>
             </span>
           </button>
