@@ -29,8 +29,9 @@ export interface GenConfig {
   mode: string;
   genre: string;
   length: string; // LENGTHS id
-  goal: string; // free-text learning goal (chips/IEP/CCSS fold into this for now)
+  goal: string; // resolved learning goal (from skill chips / IEP text / standard)
   requestedWords: string; // teacher-requested words to work into the text
+  twrParts: string[]; // which TWR scaffolds to emit: subset of ["A","B","C","D"]
   outputs: Outputs;
 }
 

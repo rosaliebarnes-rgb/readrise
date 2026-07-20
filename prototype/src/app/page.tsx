@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { LENGTHS, MODES, STAGES } from "@/lib/domain";
+import { CCSS, LENGTHS, MODES, SKILLS, STAGES, ccssLabel } from "@/lib/domain";
 import { READER_DEFAULT, type ReaderSettings } from "@/lib/reader";
 import type { GenConfig, ParsedSections } from "@/lib/types";
 import PhonicsLadder from "@/components/PhonicsLadder";
@@ -28,13 +28,28 @@ const SUPPORT_TOGGLES: { key: SupportKey; label: string }[] = [
   { key: "wordCount", label: "Word count by paragraph" },
 ];
 
-type Activity = "comprehension" | "inference" | "twr" | "none";
+type Activity = "comprehension" | "inference" | "paragraph" | "sentences" | "topic" | "none";
 const ACTIVITIES: { key: Activity; label: string }[] = [
   { key: "comprehension", label: "Comprehension questions" },
   { key: "inference", label: "Inference questions" },
-  { key: "twr", label: "TWR writing activities" },
+  { key: "paragraph", label: "Write a paragraph — main idea + 3 supports + conclusion" },
+  { key: "sentences", label: "Sentence building — because / but / so, expansion" },
+  { key: "topic", label: "Topic sentence — from the 5 W's" },
   { key: "none", label: "None — just the reading text" },
 ];
+
+// activity → which TWR scaffolds the prompt emits (letters keep the renderer's
+// blank-enforcement: C = paragraph, D = 5 W's).
+const TWR_PARTS: Record<Activity, string[]> = {
+  comprehension: [],
+  inference: [],
+  paragraph: ["C"],
+  sentences: ["A", "B"],
+  topic: ["D"],
+  none: [],
+};
+
+type GoalMode = "skill" | "iep" | "standard";
 
 export default function Home() {
   const [step, setStep] = useState(1);
@@ -52,7 +67,10 @@ export default function Home() {
   const [mode, setMode] = useState("Narrative nonfiction");
   const [genre, setGenre] = useState("");
   const [length, setLength] = useState("Short");
-  const [goal, setGoal] = useState("");
+  const [goalMode, setGoalMode] = useState<GoalMode>("skill");
+  const [skillChips, setSkillChips] = useState<string[]>([]);
+  const [iepText, setIepText] = useState("");
+  const [ccss, setCcss] = useState("");
   const [phonicsOn, setPhonicsOn] = useState(false);
   const [phonicsPattern, setPhonicsPattern] = useState("");
 
@@ -73,7 +91,16 @@ export default function Home() {
   };
   const subtitle = `${target}${stageObj ? ` · ${stageObj.label}` : level ? ` · ${level}` : ""}`;
 
+  // Resolve the learning goal from whichever alignment mode is active.
+  const goal =
+    goalMode === "iep"
+      ? iepText.trim()
+      : goalMode === "standard"
+        ? ccssLabel(ccss)
+        : skillChips.join(", ");
+
   function buildConfig(): GenConfig {
+    const twrParts = TWR_PARTS[activity];
     return {
       profile: {
         name,
@@ -91,13 +118,14 @@ export default function Home() {
       length,
       goal,
       requestedWords,
+      twrParts,
       outputs: {
         text: true,
         wordGrid: supports.wordGrid,
         wordCount: supports.wordCount,
         comprehension: activity === "comprehension",
         inference: activity === "inference",
-        twr: activity === "twr",
+        twr: twrParts.length > 0,
       },
     };
   }
@@ -317,14 +345,87 @@ export default function Home() {
                         ))}
                       </div>
                     </Field>
-                    <Field label="Learning goal — optional" hint="Shapes the comprehension questions.">
-                      <input
-                        className={inputCls}
-                        placeholder="e.g. finding evidence, main idea, vocabulary in context"
-                        value={goal}
-                        onChange={(e) => setGoal(e.target.value)}
-                      />
-                    </Field>
+                    <div className="mt-4">
+                      <span className="mb-1.5 block text-[12px] font-medium tracking-wide text-pine">
+                        Align to a goal — optional
+                      </span>
+                      <div className="mb-2 flex gap-1.5">
+                        {(
+                          [
+                            ["skill", "Skill"],
+                            ["iep", "IEP goal"],
+                            ["standard", "Standard"],
+                          ] as [GoalMode, string][]
+                        ).map(([m, lbl]) => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => setGoalMode(m)}
+                            className={`flex-1 rounded-lg border px-2 py-1.5 text-[12.5px] font-medium transition-colors ${
+                              goalMode === m
+                                ? "border-pine bg-pine text-white"
+                                : "border-hair bg-white text-ink-soft hover:bg-pine-soft/40"
+                            }`}
+                          >
+                            {lbl}
+                          </button>
+                        ))}
+                      </div>
+
+                      {goalMode === "skill" && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {SKILLS.map((s) => {
+                            const on = skillChips.includes(s);
+                            return (
+                              <button
+                                key={s}
+                                type="button"
+                                onClick={() =>
+                                  setSkillChips((prev) => (on ? prev.filter((x) => x !== s) : [...prev, s]))
+                                }
+                                className={`rounded-full border px-2.5 py-1 text-[12px] transition-colors ${
+                                  on
+                                    ? "border-pine bg-pine text-white"
+                                    : "border-hair bg-white text-ink-soft hover:bg-pine-soft/40"
+                                }`}
+                              >
+                                {s}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {goalMode === "iep" && (
+                        <div>
+                          <textarea
+                            className={`${inputCls} min-h-[80px] resize-y`}
+                            placeholder="Paste the IEP goal — e.g. 'Given a text at instructional level, [student] will identify the main idea and two supporting details with 80% accuracy across 3 trials.'"
+                            value={iepText}
+                            onChange={(e) => setIepText(e.target.value)}
+                          />
+                          <p className="mt-1.5 rounded-md bg-pine-soft/70 px-2.5 py-1.5 text-[11.5px] leading-snug text-pine">
+                            Sent to the writer to shape the activity, then discarded. Never stored — no
+                            name or IEP text is kept.
+                          </p>
+                        </div>
+                      )}
+
+                      {goalMode === "standard" && (
+                        <select className={inputCls} value={ccss} onChange={(e) => setCcss(e.target.value)}>
+                          <option value="">Choose a standard…</option>
+                          {CCSS.map((c) => (
+                            <option key={c.code} value={c.code}>
+                              {c.code} — {c.summary}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+
+                      <span className="mt-1 block text-[11.5px] leading-snug text-ink-soft">
+                        Shapes the comprehension questions and the activity.
+                      </span>
+                    </div>
                     <label className="mt-4 flex items-center gap-2.5 text-[13.5px] text-ink">
                       <input
                         type="checkbox"

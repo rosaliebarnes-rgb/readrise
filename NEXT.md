@@ -28,6 +28,12 @@ Production `readrise` (the single-file `index.html` app) is untouched until cuto
 - [x] **Words to include** field — teacher-requested words woven in where decodable
       and marked as practice words; off-level ones routed to the teacher note's
       FRONT-LOAD list instead of being forced into the text.
+- [x] **Decoding stage is clearable** — click the selected stage to toggle off, or
+      a "Clear decoding stage" link; falls back to Instructional if nothing's left.
+- [x] **Writing scaffolds are individually selectable** in the pick-one activity
+      list (Write a paragraph = TWR-C / Sentence building = A+B / Topic sentence = D),
+      so a teacher can match the specific IEP writing goal. Prompt emits only the
+      chosen scaffold; renderer keeps the enforced blanks.
 - [ ] _(add more as you find them)_
 
 ## 1. Finish the port to parity (Phase 2)
@@ -36,16 +42,15 @@ Production `readrise` (the single-file `index.html` app) is untouched until cuto
       Knowledge Journal, Rolling Vocabulary / Sensational Six, outside-resource
       suggestions), print-whole-pack.
 - [ ] **Feedback path** — browser → Google Apps Script → Sheet (carry over endpoint).
-- [ ] **Learning goal, full version** — restore the goal picker as
-      **"Align to: Skill · IEP goal · Standard"** (drives the comprehension-question
-      logic; currently one free-text box).
-  - **IEP goal stays inside One Student** (decided) — its own textarea with an
-    inline privacy note ("pasted to shape the activity, then discarded — never
-    stored"); the name field stays optional. Not a separate top-level tab.
-  - **CCSS standards must show a plain-language summary, not the bare code** —
-    e.g. "RI.2 — Determine the central idea and summarize the key details," not
-    just "RI.2." Teachers shouldn't have to decode standard numbers. (Build the
-    full code→summary list as part of this item.)
+- [x] **Learning goal, full version** — shipped the **"Align to: Skill · IEP goal
+      · Standard"** picker (drives the comprehension-question logic).
+  - **IEP goal stays inside One Student** — its own textarea with an inline privacy
+    note ("sent to the writer, then discarded — never stored"); name stays optional.
+  - **CCSS shows plain-language summaries, not bare codes** — dropdown reads
+    "RI.2 — Determine the central idea and summarize the key details." Broadened
+    the comprehension logic to match the summary phrasing.
+  - _Later:_ per-grade CCSS variants; auto-suggest the aligned activity from an
+    IEP goal (e.g. paragraph goal → preselect the paragraph scaffold).
 - [ ] Confirm remaining output toggles render end-to-end (word-count-by-paragraph,
       inference) and Simpler / Tighter adjustments feel right on real output.
 

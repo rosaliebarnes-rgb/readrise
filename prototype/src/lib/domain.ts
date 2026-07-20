@@ -27,6 +27,43 @@ export const LENGTHS = [
 
 export const MODES = ["Nonfiction", "Narrative nonfiction", "Fiction", "Either"];
 
+/* Skills chips — quick learning-goal alignment. */
+export const SKILLS = [
+  "Vocabulary in context",
+  "Inference",
+  "Main idea",
+  "Finding evidence",
+  "Author's craft",
+  "Figurative language",
+  "Text structure",
+  "Fluency",
+];
+
+/* CCSS standards shown with a plain-language summary, never bare codes —
+   teachers shouldn't have to decode "RI.2". Grade-agnostic anchor phrasing. */
+export const CCSS: { code: string; summary: string }[] = [
+  { code: "RI.1", summary: "Cite text evidence for what the text says and what it implies" },
+  { code: "RI.2", summary: "Determine the central idea and summarize the key details" },
+  { code: "RI.3", summary: "Analyze how people, events, and ideas connect and develop" },
+  { code: "RI.4", summary: "Figure out what words and phrases mean in context" },
+  { code: "RI.5", summary: "Analyze how the text is organized and how the parts fit" },
+  { code: "RI.6", summary: "Determine the author's point of view or purpose" },
+  { code: "RI.8", summary: "Trace the argument and judge whether the evidence holds up" },
+  { code: "RL.1", summary: "Cite text evidence to support your analysis of the story" },
+  { code: "RL.2", summary: "Determine the theme or central idea and summarize the story" },
+  { code: "RL.3", summary: "Analyze how characters, setting, and plot develop and interact" },
+  { code: "RL.4", summary: "Figure out word meanings, including figurative language" },
+  { code: "RL.6", summary: "Analyze how point of view shapes the story" },
+  { code: "L.4", summary: "Use context clues and word parts to unlock new words" },
+  { code: "L.5", summary: "Interpret figurative language and shades of word meaning" },
+  { code: "L.6", summary: "Learn and use academic and subject-area vocabulary" },
+];
+
+export function ccssLabel(code: string): string {
+  const c = CCSS.find((x) => x.code === code);
+  return c ? `${c.code} — ${c.summary}` : "";
+}
+
 export type Layer = "proper" | "academic";
 export interface Seg {
   t: string;

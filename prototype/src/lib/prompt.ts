@@ -104,48 +104,50 @@ ITALICS / WORD BANK: mark on-level practice words with SINGLE asterisks only (*w
 function comprehensionLogic(cfg: GenConfig): string {
   const g = (cfg.goal || "").toLowerCase();
   const has = (s: string) => g.includes(s);
-  if (has("vocabulary") || has("figurative") || has("word"))
+  if (has("vocabulary") || has("figurative") || has("word meaning") || has("meaning of") || has("context clue"))
     return `Write word-in-context questions in this exact frame: "The text uses the word [word] in this line: [quote the line]. Based on how it is used here, what do you think it means?"`;
   if (has("evidence") || has("cite"))
     return `Write find-the-evidence questions in this frame: "Find the sentence that shows [claim]. Write it in your own words, or copy it exactly."`;
-  if (has("main idea") || has("summary"))
+  if (has("main idea") || has("central idea") || has("theme") || has("summar"))
     return `Ask the reader to identify the central idea, distinguish it from supporting details, and write a one-sentence summary.`;
-  if (has("analyze") || has("connect"))
+  if (has("analyze") || has("connect") || has("develop") || has("interact") || has("point of view"))
     return `Ask the reader to trace how specific individuals, events, or ideas in the text are connected to each other.`;
-  if (has("argument") || has("claim"))
+  if (has("argument") || has("claim") || has("evaluate"))
     return `Ask the reader to identify the central claim, evaluate the evidence, and decide whether it is convincing.`;
   return `Write 2 to 3 literal comprehension questions answerable directly from the text.`;
 }
 
-function twrInstructions(profile: StudentProfile): string {
+function twrInstructions(profile: StudentProfile, parts: string[]): string {
   const who = profile.name && profile.name.length <= 20 ? profile.name : "the main person in the text";
-  return `===TWR===
-Generate all four Writing Revolution activities, labeled A, B, C, D, using content from the text. These are SCAFFOLDS the STUDENT completes. Do NOT do the student's writing for them in C or D.
-
-A. Because / But / So
+  const specs: Record<string, string> = {
+    A: `A. Because, But, So
 KERNEL: one 3–6 word kernel sentence, subject + verb only, no clauses, drawn from the text.
 Then three lines, each the kernel followed by one conjunction:
 - [kernel] because
 - [kernel] but
-- [kernel] so
-
-B. Sentence Expansion
+- [kernel] so`,
+    B: `B. Build a Sentence
 KERNEL: a DIFFERENT 3–5 word sentence than A. You may paraphrase. Replace pronouns with the actual name (${who}).
-Then exactly 3 fitting question words from: Where? When? How? Why? Which kind? With whom? — one per line, each starting with "-".
-
-C. Paragraph Outline (one focused section of the text only, not the whole text)
-CLAIM: a single claim sentence.
+Then exactly 3 fitting question words from: Where? When? How? Why? Which kind? With whom? — one per line, each starting with "-".`,
+    C: `C. Write a Paragraph
+CLAIM: a single claim sentence about ONE focused section of the text (not the whole text).
 Then exactly 3 supporting details, each on its own line starting with "-". Do NOT place them in final logical order — the student will order them.
-CONCLUSION: (output this label with NOTHING after it — the student writes the conclusion)
-
-D. 5 W's to Topic Sentence
+CONCLUSION: (output this label with NOTHING after it — the student writes the conclusion)`,
+    D: `D. Topic Sentence from the 5 W's
 FOCUS: name the one topic or moment from the text the student will write about (one short line).
 Then output these five labels, each on its own line with NOTHING after the colon — the student fills them in:
 WHO:
 WHAT:
 WHERE:
 WHEN:
-WHY:`;
+WHY:`,
+  };
+  const chosen = parts.map((p) => specs[p]).filter(Boolean).join("\n\n");
+  const plural = parts.length > 1;
+  return `===TWR===
+Generate ONLY the Writing Revolution activit${plural ? "ies" : "y"} below, keeping the exact letter label shown. ${plural ? "These are scaffolds" : "This is a scaffold"} the STUDENT completes — do NOT do the student's writing for them in C or D.
+
+${chosen}`;
 }
 
 export function buildPrompt(cfg: GenConfig, adjustment: string | null): string {
@@ -226,9 +228,9 @@ ${comprehensionLogic(cfg)} Number each question. 3 to 5 questions. No answer lin
     fmt.push(`===INFERENCE===
 2 to 3 inference questions. Use the learning goal as the entry point, then push the reader past the literal into interpretation ("what does this suggest", "why might", "what can you conclude"). Number each. No answer lines.`);
   }
-  if (outputs.twr) {
+  if (outputs.twr && cfg.twrParts.length) {
     sections.push("===TWR===");
-    fmt.push(twrInstructions(profile));
+    fmt.push(twrInstructions(profile, cfg.twrParts));
   }
   if (cfg.readingTarget === "Independent") {
     sections.push("===TEACHERNOTE===");
