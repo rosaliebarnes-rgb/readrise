@@ -82,6 +82,24 @@ export function numberedLines(block: string): string[] {
     .map((l) => l.replace(/^\s*\d+[.)]\s*/, ""));
 }
 
+/* A question block may open with one "DIRECTIONS: …" line that applies to every
+   question (so a shared instruction isn't repeated in each one). Split it off. */
+export function splitQuestions(block: string): { directions: string; questions: string[] } {
+  let directions = "";
+  const questions: string[] = [];
+  for (const raw of block.split("\n")) {
+    const l = raw.trim();
+    if (!l) continue;
+    const d = l.match(/^DIRECTIONS:\s*(.*)$/i);
+    if (d) {
+      directions = d[1].trim();
+      continue;
+    }
+    questions.push(l.replace(/^\s*\d+[.)]\s*/, ""));
+  }
+  return { directions, questions };
+}
+
 /* Pull the title off the top and return the body paragraphs (verse-aware:
    internal single newlines are preserved by the caller). */
 export function splitTitle(text: string): { title: string; paras: string[] } {

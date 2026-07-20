@@ -41,7 +41,16 @@ Production `readrise` (the single-file `index.html` app) is untouched until cuto
       plus a teacher-only, print-hidden level caption. (Needed a stronger prompt:
       "REQUIRED SECTION" + an "emit every listed section" output-discipline rule —
       the reading-passage framing was causing the model to skip the section.)
+- [x] **Evidence questions no longer repeat the same tail.** The "copy it or use
+      your own words" guidance is stated once as a `DIRECTIONS:` line; the questions
+      themselves vary ("Find the sentence that shows…", "Which line tells you…",
+      "Copy the words that prove…", "Where does the text say…"). Renders once on
+      screen, in Copy, and in the PDF.
 - [ ] _(add more as you find them)_
+
+> **Deploy note:** for the prototype, use `vercel deploy --prod --force` — a plain
+> `--prod` deploy occasionally serves a stale build cache (a prompt-string change
+> silently didn't ship until `--force`). Always smoke-test after deploying.
 
 ## 1. Finish the port to parity (Phase 2)
 - [ ] **Class-set builder** — anchor topic + vary-axis + level spread, shared

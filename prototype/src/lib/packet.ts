@@ -2,7 +2,7 @@
    scratch — the teacher note is never referenced, so it can never leak into a
    copy or a PDF, independent of any screen CSS. */
 
-import { numberedLines, splitTitle } from "./parse";
+import { numberedLines, splitQuestions, splitTitle } from "./parse";
 import type { ParsedSections } from "./types";
 
 /* Strip the markup conventions so the student sees plain words. */
@@ -35,10 +35,11 @@ export function packetText(p: ParsedSections): string {
   }
 
   const qBlock = (block: string, label: string) => {
-    const qs = numberedLines(block);
-    if (!qs.length) return;
+    const { directions, questions } = splitQuestions(block);
+    if (!questions.length) return;
     out.push(label.toUpperCase());
-    qs.forEach((q, i) => {
+    if (directions) out.push(plain(directions));
+    questions.forEach((q, i) => {
       out.push(`${i + 1}. ${plain(q)}`);
       out.push("");
       out.push("");
@@ -74,10 +75,12 @@ const RULE = `<div style="border-bottom:1px solid #9a9a9a;height:1.5em;margin:8p
 const BOX = `<span style="display:inline-block;width:16px;height:16px;border:1px solid #9a9a9a;vertical-align:-2px;margin-right:8px;"></span>`;
 
 function questionsHtml(block: string, label: string): string {
-  const qs = numberedLines(block);
-  if (!qs.length) return "";
-  let h = `<h3>${esc(label)}</h3><ol style="padding-left:1.4em;margin:0;">`;
-  qs.forEach((q) => {
+  const { directions, questions } = splitQuestions(block);
+  if (!questions.length) return "";
+  let h = `<h3>${esc(label)}</h3>`;
+  if (directions) h += `<p style="font-style:italic;color:#555;margin:0 0 6px;">${esc(plain(directions))}</p>`;
+  h += `<ol style="padding-left:1.4em;margin:0;">`;
+  questions.forEach((q) => {
     h += `<li style="margin:0 0 4px;break-inside:avoid;">${esc(plain(q))}${RULE}${RULE}</li>`;
   });
   return h + `</ol>`;

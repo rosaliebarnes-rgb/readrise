@@ -107,7 +107,7 @@ function comprehensionLogic(cfg: GenConfig): string {
   if (has("vocabulary") || has("figurative") || has("word meaning") || has("meaning of") || has("context clue"))
     return `Write word-in-context questions in this exact frame: "The text uses the word [word] in this line: [quote the line]. Based on how it is used here, what do you think it means?"`;
   if (has("evidence") || has("cite"))
-    return `Write find-the-evidence questions in this frame: "Find the sentence that shows [claim]. Write it in your own words, or copy it exactly."`;
+    return `Write find-the-evidence questions. Begin the section with ONE line that starts "DIRECTIONS:" telling the student they can copy the exact words from the text or write them in their own words — say this ONCE, here, not in each question. Then write the numbered questions, and VARY how each one asks: e.g. "Find the sentence that shows…", "Which line tells you…", "Copy the words that prove…", "Where does the text say…", "What line makes you think…". Each question points the student to a specific place in the text. Never repeat the same wording twice.`;
   if (has("main idea") || has("central idea") || has("theme") || has("summar"))
     return `Ask the reader to identify the central idea, distinguish it from supporting details, and write a one-sentence summary.`;
   if (has("analyze") || has("connect") || has("develop") || has("interact") || has("point of view"))
