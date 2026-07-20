@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Self-hosted fonts. Lexend (UI + reading, reading-fluency research),
+   Nunito (warm display / wordmark), Atkinson Hyperlegible + OpenDyslexic
+   are reader-control options for the student reading surface.
+--------------------------------------------------------------------------- */
+@font-face { font-family: "Lexend"; font-weight: 400; font-display: swap; src: url("/fonts/lexend-400.woff2") format("woff2"); }
+@font-face { font-family: "Lexend"; font-weight: 500; font-display: swap; src: url("/fonts/lexend-500.woff2") format("woff2"); }
+@font-face { font-family: "Lexend"; font-weight: 600; font-display: swap; src: url("/fonts/lexend-600.woff2") format("woff2"); }
+@font-face { font-family: "Nunito"; font-weight: 600; font-display: swap; src: url("/fonts/nunito-600.woff2") format("woff2"); }
+@font-face { font-family: "Nunito"; font-weight: 700; font-display: swap; src: url("/fonts/nunito-700.woff2") format("woff2"); }
+@font-face { font-family: "Atkinson Hyperlegible"; font-weight: 400; font-display: swap; src: url("/fonts/atkinson-hyperlegible-400.woff2") format("woff2"); }
+@font-face { font-family: "Atkinson Hyperlegible"; font-weight: 700; font-display: swap; src: url("/fonts/atkinson-hyperlegible-700.woff2") format("woff2"); }
+@font-face { font-family: "OpenDyslexic"; font-weight: 400; font-display: swap; src: url("/fonts/opendyslexic-400.woff2") format("woff2"); }
+@font-face { font-family: "OpenDyslexic"; font-weight: 700; font-display: swap; src: url("/fonts/opendyslexic-700.woff2") format("woff2"); }
+
+/* ---------------------------------------------------------------------------
+   Design tokens — the dyslexia foundation, encoded once.
+   pine = brand / structure. sky + coral = the two vocabulary layers
+   (semantic, never decorative). ochre = the "you are here" ladder marker.
+--------------------------------------------------------------------------- */
+@theme {
+  --color-ground: #efeadd;
+  --color-panel: #f7f3ea;
+  --color-paper: #f6f0e2;
+  --color-ink: #26241d;
+  --color-ink-soft: #6b6656;
+  --color-hair: #ddd5c2;
+  --color-pine: #1f5c46;
+  --color-pine-soft: #e6ede4;
+  --color-ochre: #c8862b;
+  --color-sky-bg: #dcebf3;
+  --color-sky-ink: #1c516e;
+  --color-coral-bg: #fce3da;
+  --color-coral-ink: #993c1d;
+
+  --font-sans: "Lexend", system-ui, sans-serif;
+  --font-display: "Nunito", system-ui, sans-serif;
+
+  --radius-card: 16px;
+}
+
+/* Reader-control variables. Defaults; overridden live on the reading surface. */
+:root {
+  --rd-size: 19px;
+  --rd-leading: 1.62;
+  --rd-family: "Lexend", system-ui, sans-serif;
+  --rd-paper: #f6f0e2;
+  --rd-paper-ink: #26241d;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Never justify, never italicize emphasis — the whole point. */
+p { text-wrap: pretty; }
+:focus-visible { outline: 2px solid var(--color-pine); outline-offset: 2px; border-radius: 3px; }
+
+/* The student reading surface. Font, size, leading and tint are all driven by
+   the reader controls through the --rd-* variables. */
+.reading {
+  font-family: var(--rd-family);
+  font-size: var(--rd-size);
+  line-height: var(--rd-leading);
+  letter-spacing: 0.01em;
+  word-spacing: 0.04em;
+  background: var(--rd-paper);
+  color: var(--rd-paper-ink);
+}
+.reading p { max-width: 46ch; }
+
+/* Two-layer vocabulary highlights — these replace the app's italics entirely. */
+.layer-proper { background: var(--color-sky-bg); color: var(--color-sky-ink); border-radius: 4px; padding: 0 4px; }
+.layer-academic { background: var(--color-coral-bg); color: var(--color-coral-ink); border-radius: 4px; padding: 0 4px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .fade-in { animation: fade-in 0.4s ease both; }
+}
+@keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
