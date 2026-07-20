@@ -165,7 +165,7 @@ function TWR({ block }: { block: string }) {
         }
 
         return (
-          <div key={ci} className="mb-2">
+          <div key={ci} className="avoid-break mb-2">
             {parts}
           </div>
         );
@@ -180,7 +180,7 @@ function TeacherNote({ note }: { note: string }) {
     .map((l) => l.trim())
     .filter(Boolean);
   return (
-    <div className="mb-7 rounded-xl border border-hair border-l-4 border-l-pine bg-pine-soft/60 p-4">
+    <div className="print-hide mb-7 rounded-xl border border-hair border-l-4 border-l-pine bg-pine-soft/60 p-4">
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <span className="text-[11px] font-semibold tracking-wide text-pine uppercase">Teacher note</span>
         <span className="rounded-full bg-pine/10 px-2 py-0.5 text-[10.5px] text-pine">
@@ -230,7 +230,7 @@ export default function OutputPanel({
 
   return (
     <div className="fade-in">
-      <div className="mb-6 flex flex-wrap items-center gap-3">
+      <div className="print-hide mb-6 flex flex-wrap items-center gap-3">
         <ReaderControls value={reader} onChange={onReaderChange} />
         <div className="ml-auto flex gap-2">
           <button
@@ -261,7 +261,7 @@ export default function OutputPanel({
         </div>
       </div>
 
-      {subtitle && <div className="mb-4 text-[12.5px] text-ink-soft">{subtitle}</div>}
+      {subtitle && <div className="print-hide mb-4 text-[12.5px] text-ink-soft">{subtitle}</div>}
 
       {parsed.teachernote && <TeacherNote note={parsed.teachernote} />}
 
@@ -270,7 +270,7 @@ export default function OutputPanel({
         {paras.map((para, i) => (
           <Paragraph key={i} para={para} />
         ))}
-        <div className="mt-7 border-t border-black/10 pt-4 text-[13px]" style={{ fontFamily: '"Lexend", sans-serif' }}>
+        <div className="print-hide mt-7 border-t border-black/10 pt-4 text-[13px]" style={{ fontFamily: '"Lexend", sans-serif' }}>
           <span className="mr-4 inline-flex items-center gap-1.5">
             <span className="layer-proper">name</span>
             <span className="opacity-70">real name or place</span>

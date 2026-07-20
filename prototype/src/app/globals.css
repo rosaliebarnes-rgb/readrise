@@ -87,3 +87,36 @@ p { text-wrap: pretty; }
   .fade-in { animation: fade-in 0.4s ease both; }
 }
 @keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ---------------------------------------------------------------------------
+   Print — only the student packet leaves the printer. The setup panel, reader
+   controls, buttons, highlight legend, and the teacher note are all screen-only.
+   The teacher note NEVER prints (constitution: screen only, never for students).
+   Highlights flatten to plain black text; the reader's font size and spacing
+   carry through so a dyslexic student's larger type prints large.
+--------------------------------------------------------------------------- */
+@media print {
+  @page { margin: 1.6cm; }
+  html, body, main { background: #fff !important; }
+  aside { display: none !important; }
+  .print-hide { display: none !important; }
+  main > div { max-width: none !important; margin: 0 !important; padding: 0 !important; }
+  .reading {
+    background: #fff !important;
+    color: #000 !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+  }
+  .reading p { max-width: none !important; }
+  .layer-proper,
+  .layer-academic {
+    background: transparent !important;
+    color: #000 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+  }
+  h2, h3 { break-after: avoid; }
+  li, .avoid-break { break-inside: avoid; }
+}
