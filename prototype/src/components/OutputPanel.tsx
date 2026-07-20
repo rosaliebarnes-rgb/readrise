@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { numberedLines, segment, splitTitle, type Seg } from "@/lib/parse";
+import { packetHtml, packetText } from "@/lib/packet";
 import { readingStyle, type ReaderSettings } from "@/lib/reader";
 import type { ParsedSections } from "@/lib/types";
 import ReaderControls from "./ReaderControls";
@@ -227,6 +229,33 @@ export default function OutputPanel({
 }) {
   const { title, paras } = splitTitle(parsed.text);
   const wordBank = numberedLines(parsed.wordgrid);
+  const [copied, setCopied] = useState(false);
+
+  async function copyPacket() {
+    try {
+      await navigator.clipboard.writeText(packetText(parsed));
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  /* Print from a fresh document containing only the student packet — the
+     teacher note isn't in it, so it can't leak into the PDF. Falls back to the
+     in-page print (which the print stylesheet also cleans) if pop-ups block. */
+  function printPacket() {
+    const w = window.open("", "_blank", "width=820,height=1000");
+    if (!w) {
+      window.print();
+      return;
+    }
+    w.document.open();
+    w.document.write(packetHtml(parsed, window.location.origin));
+    w.document.close();
+    w.focus();
+    window.setTimeout(() => w.print(), 350);
+  }
 
   return (
     <div className="fade-in">
@@ -253,7 +282,14 @@ export default function OutputPanel({
           )}
           <button
             type="button"
-            onClick={() => window.print()}
+            onClick={copyPacket}
+            className="rounded-lg border border-hair px-3.5 py-2 text-[13px] font-medium text-ink-soft hover:bg-pine-soft"
+          >
+            {copied ? "Copied ✓" : "Copy student text"}
+          </button>
+          <button
+            type="button"
+            onClick={printPacket}
             className="rounded-lg border border-pine px-3.5 py-2 text-[13px] font-medium text-pine hover:bg-pine-soft"
           >
             Print / Save as PDF
