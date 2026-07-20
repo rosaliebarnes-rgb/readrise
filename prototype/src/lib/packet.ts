@@ -47,6 +47,21 @@ export function packetText(p: ParsedSections): string {
   qBlock(p.comprehension, "Comprehension");
   qBlock(p.inference, "Inference");
 
+  if (p.wordproblems.trim()) {
+    const wps = numberedLines(p.wordproblems);
+    if (wps.length) {
+      out.push("WORD PROBLEMS");
+      wps.forEach((q, i) => {
+        out.push(`${i + 1}. ${plain(q)}`);
+        out.push("   Show your work:");
+        out.push("");
+        out.push("");
+        out.push("   Answer: __________");
+        out.push("");
+      });
+    }
+  }
+
   if (p.twr.trim()) {
     out.push("WRITING");
     out.push(plain(p.twr));
@@ -64,6 +79,16 @@ function questionsHtml(block: string, label: string): string {
   let h = `<h3>${esc(label)}</h3><ol style="padding-left:1.4em;margin:0;">`;
   qs.forEach((q) => {
     h += `<li style="margin:0 0 4px;break-inside:avoid;">${esc(plain(q))}${RULE}${RULE}</li>`;
+  });
+  return h + `</ol>`;
+}
+
+function wordProblemsHtml(block: string): string {
+  const qs = numberedLines(block);
+  if (!qs.length) return "";
+  let h = `<h3>Word problems</h3><ol style="padding-left:1.4em;margin:0;">`;
+  qs.forEach((q) => {
+    h += `<li style="margin:0 0 14px;break-inside:avoid;">${esc(plain(q))}<div style="font-size:10pt;color:#555;margin:6px 0 2px;">Show your work:</div>${RULE}${RULE}<div style="margin-top:2px;">Answer: ${"_".repeat(18)}</div></li>`;
   });
   return h + `</ol>`;
 }
@@ -124,6 +149,7 @@ export function packetHtml(p: ParsedSections, origin: string): string {
   }
   body += questionsHtml(p.comprehension, "Comprehension");
   body += questionsHtml(p.inference, "Inference");
+  body += wordProblemsHtml(p.wordproblems);
   if (p.twr.trim()) body += twrHtml(p.twr);
 
   return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title || "ReadRise")}</title>

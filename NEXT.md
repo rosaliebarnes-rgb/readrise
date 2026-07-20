@@ -34,6 +34,13 @@ Production `readrise` (the single-file `index.html` app) is untouched until cuto
       list (Write a paragraph = TWR-C / Sentence building = A+B / Topic sentence = D),
       so a teacher can match the specific IEP writing goal. Prompt emits only the
       chosen scaffold; renderer keeps the enforced blanks.
+- [x] **Math word problems — for the student to solve** — new pick-one activity.
+      Generates 3 unsolved problems set in the text's world, with a separate
+      **math skill / level** control (reading stays at the student's decoding level;
+      the two dials are independent). Renders with "show your work" + answer space,
+      plus a teacher-only, print-hidden level caption. (Needed a stronger prompt:
+      "REQUIRED SECTION" + an "emit every listed section" output-discipline rule —
+      the reading-passage framing was causing the model to skip the section.)
 - [ ] _(add more as you find them)_
 
 ## 1. Finish the port to parity (Phase 2)
@@ -91,13 +98,13 @@ duplicating the student profile. The name field is already "Name or ID,"
 passed-through and never stored; making it obviously optional / omitting it per
 text type is what makes it *feel* safe.
 
-**Planned text type — math word problems (inside One Student).** For IEP goals
-like "read and comprehend word problems at level X." Recipe: numbered decodable
-problems, culturally-relevant contexts (names/places from the kid's world =
-culturally-relevant math), and reading-of-math scaffolds ("What is the question
-asking? Which numbers do you need? What operation?"). **Separate dials for
-reading level and math complexity** — a strong-in-math student may still decode
-at a low level. Needs its own generation recipe, not the reading-passage prompt.
+**Math word problems.** A first version now ships as a pick-one **activity**
+(student-solve problems set in the reading text's world, with separate reading /
+math dials — see §0). Still open as a possible future **text type**: a
+math-first / promptless generator where the whole deliverable is problems (little
+or no reading passage), which would want its own recipe and a name-free form.
+Reading-of-math scaffolds ("What is the question asking? Which numbers? What
+operation?") are a natural add to either.
 
 ## Open decisions
 - **Text-generation model.** Currently `claude-sonnet-4-6`. This is the single AI

@@ -73,6 +73,32 @@ function Questions({ block, label }: { block: string; label: string }) {
   );
 }
 
+function WordProblems({ block, focus }: { block: string; focus?: string }) {
+  const qs = numberedLines(block);
+  if (!qs.length) return null;
+  return (
+    <>
+      <SectionLabel>Word problems</SectionLabel>
+      {focus && <p className="print-hide -mt-1 mb-3 text-[12px] text-ink-soft">{focus}</p>}
+      <ol className="space-y-5">
+        {qs.map((q, i) => (
+          <li key={i} className="avoid-break border-b border-hair pb-4">
+            <p className="text-[15px] leading-snug">
+              <span className="mr-1.5 text-ink-soft">{i + 1}.</span>
+              <Line str={q} />
+            </p>
+            <p className="mt-2 text-[12px] text-ink-soft">Show your work:</p>
+            <Rule />
+            <Rule />
+            <p className="mt-1 text-[14px] font-medium">Answer:</p>
+            <Rule />
+          </li>
+        ))}
+      </ol>
+    </>
+  );
+}
+
 function TWR({ block }: { block: string }) {
   const chunks = block.split(/\n(?=[A-D]\.\s)/);
   return (
@@ -213,6 +239,7 @@ function TeacherNote({ note }: { note: string }) {
 export default function OutputPanel({
   parsed,
   subtitle,
+  mathFocus,
   reader,
   onReaderChange,
   onAdjust,
@@ -221,6 +248,7 @@ export default function OutputPanel({
 }: {
   parsed: ParsedSections;
   subtitle: string;
+  mathFocus?: string;
   reader: ReaderSettings;
   onReaderChange: (s: ReaderSettings) => void;
   onAdjust: (a: "simpler" | "tighter") => void;
@@ -334,6 +362,7 @@ export default function OutputPanel({
 
       {parsed.comprehension && <Questions block={parsed.comprehension} label="Comprehension" />}
       {parsed.inference && <Questions block={parsed.inference} label="Inference" />}
+      {parsed.wordproblems && <WordProblems block={parsed.wordproblems} focus={mathFocus} />}
       {parsed.twr && <TWR block={parsed.twr} />}
     </div>
   );

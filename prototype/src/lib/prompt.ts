@@ -228,6 +228,14 @@ ${comprehensionLogic(cfg)} Number each question. 3 to 5 questions. No answer lin
     fmt.push(`===INFERENCE===
 2 to 3 inference questions. Use the learning goal as the entry point, then push the reader past the literal into interpretation ("what does this suggest", "why might", "what can you conclude"). Number each. No answer lines.`);
   }
+  if (outputs.wordProblems) {
+    sections.push("===WORDPROBLEMS===");
+    fmt.push(`===WORDPROBLEMS===
+REQUIRED SECTION — always output it. Write 3 math word problems for the STUDENT to solve. Use the people, places, and objects from THIS text as the setting (its characters, its shop, its craft), but INVENT the numbers yourself so there is real math to do. Do NOT solve them, and do NOT reuse any problem worked out inside the text.
+${cfg.mathSkill.trim() ? `- MATH LEVEL: target this skill/level — ${cfg.mathSkill.trim()}.` : "- MATH LEVEL: choose a level that suits the reader's age."}
+- READING LEVEL is separate from math level: keep the WORDS decodable at the SAME reading level as the text${cfg.readingTarget === "Independent" ? " (90% decodable cold, per the rules above)" : ""}. The challenge is the MATH, not the reading — keep the numbers clean and easy to read.
+- Each problem: 1 to 3 short decodable sentences that set up the situation, then one clear question. Number them 1, 2, 3. No answers, no answer lines.`);
+  }
   if (outputs.twr && cfg.twrParts.length) {
     sections.push("===TWR===");
     fmt.push(twrInstructions(profile, cfg.twrParts));
@@ -244,7 +252,7 @@ VERIFY: if this text names real people, organizations, dates, or events, list th
   p.push(fmt.join("\n\n"));
   p.push(`Sections to include, in this order: ${sections.join(" ")}`);
   p.push(`OUTPUT DISCIPLINE — READ LAST, OBEY ABSOLUTELY:
-Your FIRST characters must be "===TEXT===". Do NOT write anything before it — no planning, no reasoning, no word-by-word phonics audit, no drafts, no "Let me think". Do all of that work in your head, invisibly. Output ONLY the marked sections and their content. Any text that appears before ===TEXT=== is a failure.`);
+Your FIRST characters must be "===TEXT===". Do NOT write anything before it — no planning, no reasoning, no word-by-word phonics audit, no drafts, no "Let me think". Do all of that work in your head, invisibly. Output EVERY section named in the sections list above, each under its exact marker, in the given order — skipping a listed section is a failure. Output ONLY those marked sections and their content. Any text that appears before ===TEXT=== is a failure.`);
 
   if (adjustment === "simpler") {
     p.push(

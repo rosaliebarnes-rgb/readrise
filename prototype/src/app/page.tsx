@@ -28,10 +28,18 @@ const SUPPORT_TOGGLES: { key: SupportKey; label: string }[] = [
   { key: "wordCount", label: "Word count by paragraph" },
 ];
 
-type Activity = "comprehension" | "inference" | "paragraph" | "sentences" | "topic" | "none";
+type Activity =
+  | "comprehension"
+  | "inference"
+  | "wordproblems"
+  | "paragraph"
+  | "sentences"
+  | "topic"
+  | "none";
 const ACTIVITIES: { key: Activity; label: string }[] = [
   { key: "comprehension", label: "Comprehension questions" },
   { key: "inference", label: "Inference questions" },
+  { key: "wordproblems", label: "Math word problems — for the student to solve" },
   { key: "paragraph", label: "Write a paragraph — main idea + 3 supports + conclusion" },
   { key: "sentences", label: "Sentence building — because / but / so, expansion" },
   { key: "topic", label: "Topic sentence — from the 5 W's" },
@@ -43,6 +51,7 @@ const ACTIVITIES: { key: Activity; label: string }[] = [
 const TWR_PARTS: Record<Activity, string[]> = {
   comprehension: [],
   inference: [],
+  wordproblems: [],
   paragraph: ["C"],
   sentences: ["A", "B"],
   topic: ["D"],
@@ -77,6 +86,7 @@ export default function Home() {
   const [supports, setSupports] = useState({ wordGrid: true, wordCount: false });
   const [activity, setActivity] = useState<Activity>("comprehension");
   const [requestedWords, setRequestedWords] = useState("");
+  const [mathSkill, setMathSkill] = useState("");
 
   const [reader, setReader] = useState<ReaderSettings>(READER_DEFAULT);
   const [busy, setBusy] = useState(false);
@@ -119,16 +129,24 @@ export default function Home() {
       goal,
       requestedWords,
       twrParts,
+      mathSkill,
       outputs: {
         text: true,
         wordGrid: supports.wordGrid,
         wordCount: supports.wordCount,
         comprehension: activity === "comprehension",
         inference: activity === "inference",
+        wordProblems: activity === "wordproblems",
         twr: twrParts.length > 0,
       },
     };
   }
+
+  const readingLevelLabel = stageObj ? stageObj.label : level || "the set reading level";
+  const mathFocus =
+    activity === "wordproblems"
+      ? `Math focus: ${mathSkill.trim() || "teacher-set level"} · reading stays at ${readingLevelLabel}`
+      : undefined;
 
   async function generate(adjustment: "simpler" | "tighter" | null = null) {
     setBusy(true);
@@ -494,6 +512,20 @@ export default function Home() {
                         ))}
                       </div>
                     </Field>
+
+                    {activity === "wordproblems" && (
+                      <Field
+                        label="Math skill or level"
+                        hint="Sets the math difficulty. The reading stays at the student's decoding level."
+                      >
+                        <input
+                          className={inputCls}
+                          placeholder="e.g. two-digit subtraction, multiply by one digit, unit fractions"
+                          value={mathSkill}
+                          onChange={(e) => setMathSkill(e.target.value)}
+                        />
+                      </Field>
+                    )}
                     <button
                       type="button"
                       onClick={() => generate(null)}
@@ -528,6 +560,7 @@ export default function Home() {
               <OutputPanel
                 parsed={parsed}
                 subtitle={subtitle}
+                mathFocus={mathFocus}
                 reader={reader}
                 onReaderChange={setReader}
                 onAdjust={(a) => generate(a)}

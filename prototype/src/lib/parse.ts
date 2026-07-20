@@ -10,6 +10,7 @@ const KEYS: Record<string, keyof ParsedSections> = {
   COMPREHENSION: "comprehension",
   INFERENCE: "inference",
   TWR: "twr",
+  WORDPROBLEMS: "wordproblems",
   TEACHERNOTE: "teachernote",
 };
 
@@ -20,6 +21,7 @@ export function parseSections(raw: string): ParsedSections {
     comprehension: "",
     inference: "",
     twr: "",
+    wordproblems: "",
     teachernote: "",
   };
   if (!raw) return out;
@@ -28,7 +30,8 @@ export function parseSections(raw: string): ParsedSections {
     const key = KEYS[parts[i].trim()];
     if (key) out[key] = (parts[i + 1] || "").trim();
   }
-  if (!out.text && !out.comprehension && !out.inference && !out.twr) out.text = raw.trim();
+  if (!out.text && !out.comprehension && !out.inference && !out.twr && !out.wordproblems)
+    out.text = raw.trim();
   return out;
 }
 

@@ -21,6 +21,7 @@ export interface Outputs {
   comprehension: boolean;
   inference: boolean;
   twr: boolean;
+  wordProblems: boolean; // math word problems for the student to solve
 }
 
 export interface GenConfig {
@@ -32,6 +33,7 @@ export interface GenConfig {
   goal: string; // resolved learning goal (from skill chips / IEP text / standard)
   requestedWords: string; // teacher-requested words to work into the text
   twrParts: string[]; // which TWR scaffolds to emit: subset of ["A","B","C","D"]
+  mathSkill: string; // math skill/level for word problems (independent of reading level)
   outputs: Outputs;
 }
 
@@ -43,5 +45,6 @@ export interface ParsedSections {
   comprehension: string;
   inference: string;
   twr: string;
+  wordproblems: string;
   teachernote: string;
 }
