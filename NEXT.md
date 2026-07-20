@@ -21,9 +21,14 @@ Production `readrise` (the single-file `index.html` app) is untouched until cuto
 
 ---
 
-## 0. Edits inbox (fill this in)
-Drop design/copy/flow tweaks here as you find them; these get worked first.
-- [ ] _(add yours)_
+## 0. Edits inbox
+- [x] Include section split into **supports** (Word bank, Word count — checkboxes)
+      and a **pick-one** Student activity (Comprehension / Inference / TWR / None),
+      with a hint about going deep on one per text.
+- [x] **Words to include** field — teacher-requested words woven in where decodable
+      and marked as practice words; off-level ones routed to the teacher note's
+      FRONT-LOAD list instead of being forced into the text.
+- [ ] _(add more as you find them)_
 
 ## 1. Finish the port to parity (Phase 2)
 - [ ] **Class-set builder** — anchor topic + vary-axis + level spread, shared

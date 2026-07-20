@@ -22,13 +22,18 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 const inputCls =
   "w-full rounded-lg border border-hair bg-white px-3 py-2 text-[14px] text-ink placeholder:text-ink-soft/60 focus:border-pine";
 
-type ToggleKey = Exclude<keyof GenConfig["outputs"], "text">;
-const OUTPUT_TOGGLES: { key: ToggleKey; label: string }[] = [
+type SupportKey = "wordGrid" | "wordCount";
+const SUPPORT_TOGGLES: { key: SupportKey; label: string }[] = [
   { key: "wordGrid", label: "Word bank" },
   { key: "wordCount", label: "Word count by paragraph" },
+];
+
+type Activity = "comprehension" | "inference" | "twr" | "none";
+const ACTIVITIES: { key: Activity; label: string }[] = [
   { key: "comprehension", label: "Comprehension questions" },
   { key: "inference", label: "Inference questions" },
   { key: "twr", label: "TWR writing activities" },
+  { key: "none", label: "None — just the reading text" },
 ];
 
 export default function Home() {
@@ -51,13 +56,9 @@ export default function Home() {
   const [phonicsOn, setPhonicsOn] = useState(false);
   const [phonicsPattern, setPhonicsPattern] = useState("");
 
-  const [outputs, setOutputs] = useState({
-    wordGrid: true,
-    wordCount: false,
-    comprehension: true,
-    inference: false,
-    twr: false,
-  });
+  const [supports, setSupports] = useState({ wordGrid: true, wordCount: false });
+  const [activity, setActivity] = useState<Activity>("comprehension");
+  const [requestedWords, setRequestedWords] = useState("");
 
   const [reader, setReader] = useState<ReaderSettings>(READER_DEFAULT);
   const [busy, setBusy] = useState(false);
@@ -89,7 +90,15 @@ export default function Home() {
       genre,
       length,
       goal,
-      outputs: { text: true, ...outputs },
+      requestedWords,
+      outputs: {
+        text: true,
+        wordGrid: supports.wordGrid,
+        wordCount: supports.wordCount,
+        comprehension: activity === "comprehension",
+        inference: activity === "inference",
+        twr: activity === "twr",
+      },
     };
   }
 
@@ -326,21 +335,53 @@ export default function Home() {
                         onChange={(e) => setPhonicsPattern(e.target.value)}
                       />
                     )}
+                    <Field
+                      label="Words to include — optional"
+                      hint="Decodable ones become practice words; off-level ones are routed to the teacher note to pre-teach."
+                    >
+                      <input
+                        className={inputCls}
+                        placeholder="comma-separated, e.g. pump, hop, chrome"
+                        value={requestedWords}
+                        onChange={(e) => setRequestedWords(e.target.value)}
+                      />
+                    </Field>
+
                     <Field label="Include">
                       <div className="space-y-1.5">
                         <label className="flex items-center gap-2.5 text-[13.5px] text-ink-soft">
                           <input type="checkbox" checked disabled className="h-4 w-4 accent-pine" />
                           Reading text <span className="text-[11px]">always</span>
                         </label>
-                        {OUTPUT_TOGGLES.map((o) => (
+                        {SUPPORT_TOGGLES.map((o) => (
                           <label key={o.key} className="flex items-center gap-2.5 text-[13.5px] text-ink">
                             <input
                               type="checkbox"
-                              checked={outputs[o.key]}
-                              onChange={(e) => setOutputs((prev) => ({ ...prev, [o.key]: e.target.checked }))}
+                              checked={supports[o.key]}
+                              onChange={(e) => setSupports((prev) => ({ ...prev, [o.key]: e.target.checked }))}
                               className="h-4 w-4 accent-pine"
                             />
                             {o.label}
+                          </label>
+                        ))}
+                      </div>
+                    </Field>
+
+                    <Field
+                      label="Student activity — pick one"
+                      hint="One activity per text goes deeper than three shallow ones. Reuse the same text across days with a different activity each day."
+                    >
+                      <div className="space-y-1.5">
+                        {ACTIVITIES.map((a) => (
+                          <label key={a.key} className="flex items-center gap-2.5 text-[13.5px] text-ink">
+                            <input
+                              type="radio"
+                              name="activity"
+                              checked={activity === a.key}
+                              onChange={() => setActivity(a.key)}
+                              className="h-4 w-4 accent-pine"
+                            />
+                            {a.label}
                           </label>
                         ))}
                       </div>

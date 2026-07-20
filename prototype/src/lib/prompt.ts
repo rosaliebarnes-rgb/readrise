@@ -189,6 +189,17 @@ export function buildPrompt(cfg: GenConfig, adjustment: string | null): string {
     );
   }
 
+  if (cfg.requestedWords.trim()) {
+    p.push(
+      cfg.readingTarget === "Independent"
+        ? `REQUESTED WORDS — the teacher wants these words used: ${cfg.requestedWords}.
+- For each requested word that IS decodable at this student's level, work it into the text naturally and mark it with *single asterisks* as a practice word.
+- For any requested word that is NOT decodable at this level, DO NOT force it into the decodable text — that breaks the 90% rule. Instead show the idea in words the student can read, and list the requested word in the teacher note under FRONT-LOAD for the teacher to pre-teach verbally.
+- Never distort the subject or the facts to fit a word in.`
+        : `REQUESTED WORDS — the teacher wants these words used: ${cfg.requestedWords}. Work them into the text naturally. Stretch words are allowed at this instructional level.`,
+    );
+  }
+
   // Proper-noun tagging — powers the sky-blue highlight layer in the reader.
   // Best-effort: if the model tags none, nothing breaks.
   p.push(

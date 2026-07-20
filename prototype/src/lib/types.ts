@@ -30,6 +30,7 @@ export interface GenConfig {
   genre: string;
   length: string; // LENGTHS id
   goal: string; // free-text learning goal (chips/IEP/CCSS fold into this for now)
+  requestedWords: string; // teacher-requested words to work into the text
   outputs: Outputs;
 }
 
