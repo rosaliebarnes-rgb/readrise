@@ -36,8 +36,16 @@ Production `readrise` (the single-file `index.html` app) is untouched until cuto
       Knowledge Journal, Rolling Vocabulary / Sensational Six, outside-resource
       suggestions), print-whole-pack.
 - [ ] **Feedback path** — browser → Google Apps Script → Sheet (carry over endpoint).
-- [ ] **Learning goal, full version** — restore Skills-chips / IEP-goal / CCSS tabs
-      (they drive the comprehension-question logic; currently one free-text box).
+- [ ] **Learning goal, full version** — restore the goal picker as
+      **"Align to: Skill · IEP goal · Standard"** (drives the comprehension-question
+      logic; currently one free-text box).
+  - **IEP goal stays inside One Student** (decided) — its own textarea with an
+    inline privacy note ("pasted to shape the activity, then discarded — never
+    stored"); the name field stays optional. Not a separate top-level tab.
+  - **CCSS standards must show a plain-language summary, not the bare code** —
+    e.g. "RI.2 — Determine the central idea and summarize the key details," not
+    just "RI.2." Teachers shouldn't have to decode standard numbers. (Build the
+    full code→summary list as part of this item.)
 - [ ] Confirm remaining output toggles render end-to-end (word-count-by-paragraph,
       inference) and Simpler / Tighter adjustments feel right on real output.
 
@@ -61,6 +69,31 @@ trigger · tiered models (Haiku for definitions).
 
 ---
 
+## Design notes (architecture)
+From the IEP / text-type design conversation:
+
+**Three independent axes.** Only ONE should be top-level tabs, or the tab bar
+explodes combinatorially (a class set of word problems? an IEP-aligned passage?):
+- **Scale** — one student ↔ class set. *(the current top-level tabs)*
+- **Text type** — reading passage ↔ math word problems ↔ (later) fluency passage,
+  content-area text… *(today only hinted at by Mode / Genre)*
+- **Alignment** — skill / IEP goal / standard.
+
+**Principle: text type drives which inputs appear.** A word-problem or
+IEP-practice type can be **name-free by design** without forking the app — that
+delivers the privacy benefit of a "separate tab" (nothing to collect) without
+duplicating the student profile. The name field is already "Name or ID,"
+passed-through and never stored; making it obviously optional / omitting it per
+text type is what makes it *feel* safe.
+
+**Planned text type — math word problems (inside One Student).** For IEP goals
+like "read and comprehend word problems at level X." Recipe: numbered decodable
+problems, culturally-relevant contexts (names/places from the kid's world =
+culturally-relevant math), and reading-of-math scaffolds ("What is the question
+asking? Which numbers do you need? What operation?"). **Separate dials for
+reading level and math complexity** — a strong-in-math student may still decode
+at a low level. Needs its own generation recipe, not the reading-passage prompt.
+
 ## Open decisions
 - **Text-generation model.** Currently `claude-sonnet-4-6`. This is the single AI
   call (passage + questions + TWR + teacher note). Cost is negligible at pilot
@@ -77,3 +110,7 @@ trigger · tiered models (Haiku for definitions).
 
 ## Closed
 - One-click PDF download → not needed; browser Save as PDF is fine.
+- **IEP goal placement** → **inside One Student** with inline privacy notes, not a
+  separate top-level tab. A dedicated IEP surface is only warranted if IEP work
+  grows richer features (goal → measurable objectives, aligned-activity bank,
+  progress monitoring) — kept as a possible future direction.
