@@ -149,6 +149,47 @@
   /* chips can be disabled (Independent needs a decoding stage) */
   .chip:disabled { opacity: .4; cursor: not-allowed; }
 
+  /* ---- mode tabs ---- */
+  .modetabs { display: flex; gap: 4px; margin: 14px 0 4px; }
+  .modetab {
+    flex: 1; font-size: 13px; padding: 9px 6px; cursor: pointer;
+    font-family: Arial, sans-serif; font-weight: bold;
+    border: 1px solid #c9c9c9; background: #fff; color: #666;
+    border-radius: 5px 5px 0 0;
+  }
+  .modetab.on { border-color: var(--blue); border-bottom: 3px solid var(--blue); background: var(--blue-light); color: var(--blue); }
+
+  /* ---- level rows ---- */
+  .lvlrow { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+  .lvlrow span { font-size: 11px; color: #777; width: 46px; flex-shrink: 0; }
+  .lvlrow input { flex: 1; }
+
+  /* ---- plan review ---- */
+  .plan { background: #fff; border: 1px solid #e0ddd5; border-radius: 5px; padding: 18px 20px; margin-bottom: 20px; }
+  .plan h3 { font-size: 13px; font-variant: small-caps; letter-spacing: .8px; color: var(--blue); margin: 0 0 4px; }
+  .plan .sub { font-size: 12px; color: #777; margin: 0 0 14px; }
+  .planrow { border-top: 1px solid #eee; padding: 12px 0 4px; }
+  .planrow:first-of-type { border-top: none; }
+  .planlvl { font-size: 11px; color: #fff; background: var(--blue); border-radius: 10px; padding: 2px 9px; display: inline-block; margin-bottom: 6px; }
+  .plan input, .plan textarea { font-size: 13px; margin-bottom: 6px; }
+  .plan label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: #999; margin-bottom: 2px; }
+  .resline { font-size: 13px; line-height: 1.5; padding: 8px 0; border-top: 1px solid #eee; }
+  .resline b { color: #333; }
+
+  /* ---- pack output ---- */
+  .packnav { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 18px; }
+  .packnav button {
+    font-size: 12px; padding: 6px 11px; border: 1px solid #c9c9c9; background: #fff;
+    color: #444; border-radius: 4px; cursor: pointer; font-family: Arial, sans-serif;
+  }
+  .packnav button.on { border-color: var(--blue); background: var(--blue); color: #fff; }
+  .packtext { border-top: 2px solid #e0ddd5; padding-top: 4px; }
+  .jtable { width: 100%; border-collapse: collapse; margin: 10px 0 20px; }
+  .jtable th { font-size: 11px; text-transform: uppercase; letter-spacing: .4px; color: var(--blue); text-align: left; padding: 6px 8px; border-bottom: 2px solid var(--blue); }
+  .jtable td { border: 1px solid #ddd; padding: 8px; vertical-align: top; font-size: 13px; height: 54px; }
+  .jtable td.lbl-cell { background: #f6f6f4; font-weight: bold; width: 22%; }
+  .vocabslot { border-bottom: 1px solid var(--rule); height: 22px; margin: 7px 0; }
+
   /* ---- sticky generate ---- */
   .genwrap {
     position: sticky; bottom: 0;
@@ -171,6 +212,15 @@
   <div class="left">
     <div class="brand">ReadRise</div>
     <div class="tagline">Serious, culturally alive texts at the reader's level.</div>
+
+    <!-- ---------- MODE TABS ---------- -->
+    <div class="modetabs" id="modetabs">
+      <button class="modetab on" data-mode="one">One student</button>
+      <button class="modetab" data-mode="set">Class set</button>
+    </div>
+
+    <!-- ================= MODE: ONE STUDENT ================= -->
+    <div id="mode-one">
 
     <!-- ---------- 1. WHO ---------- -->
     <div class="grp">
@@ -250,6 +300,60 @@
       <button class="generate" id="f-generate">Generate text</button>
       <div class="hint" id="gen-hint"></div>
     </div>
+    </div><!-- /mode-one -->
+
+    <!-- ================= MODE: CLASS SET ================= -->
+    <div id="mode-set" class="hidden">
+
+      <div class="grp">
+        <div class="grp-h"><span class="grp-n">1</span> What's the set about</div>
+
+        <label class="lbl">Anchor topic</label>
+        <input type="text" id="s-anchor" placeholder="e.g. lowriders in East LA, coral reefs, the Great Migration" />
+        <div class="hint" id="s-anchor-hint">Tight topics build vocabulary better than broad themes.</div>
+
+        <label class="lbl">What varies across the texts</label>
+        <select id="s-axis"></select>
+        <div class="hint" id="s-axis-hint"></div>
+
+        <label class="lbl">Vocabulary to keep (optional)</label>
+        <input type="text" id="s-vocab" placeholder="words you want taught, comma separated" />
+      </div>
+
+      <div class="grp">
+        <div class="grp-h"><span class="grp-n">2</span> Levels</div>
+        <div class="hint" style="margin:0 0 10px">You set the level for each text. Nothing is inferred.</div>
+
+        <label class="lbl">How many texts</label>
+        <select id="s-count"></select>
+
+        <label class="lbl">Fill the range (optional shortcut)</label>
+        <div class="row2">
+          <div><input type="text" id="s-lo" placeholder="lowest" /></div>
+          <div><input type="text" id="s-hi" placeholder="highest" /></div>
+        </div>
+        <button class="abtn" id="s-spread" style="margin-top:6px">Spread across texts</button>
+
+        <label class="lbl">Level for each text</label>
+        <div id="s-levels"></div>
+        <div class="hint">Lexile, grade equivalent, or a decoding stage — whatever you use. Edit any of them.</div>
+      </div>
+
+      <div class="grp">
+        <div class="grp-h"><span class="grp-n">3</span> Text options</div>
+        <label class="lbl">Mode</label>
+        <select id="s-mode"></select>
+        <label class="lbl">Length (each text)</label>
+        <div class="chips" id="s-length"></div>
+        <label class="lbl">Include</label>
+        <div id="s-outputs"></div>
+      </div>
+
+      <div class="genwrap">
+        <button class="generate" id="s-plan">Plan the set</button>
+        <div class="hint" id="s-hint">You'll review the plan before any texts are written.</div>
+      </div>
+    </div><!-- /mode-set -->
   </div>
 
   <!-- ================= RIGHT: output ================= -->
@@ -365,12 +469,28 @@ function resolveStage(profile) {
   return STAGES.find((s) => s.id === profile.stage) || null;
 }
 
+const AXES = [
+  { id: "culture", label: "Culture / geography", hint: "Different communities, each named specifically." },
+  { id: "discipline", label: "Discipline", hint: "History, science, art, civics, personal account." },
+  { id: "pov", label: "Point of view", hint: "Who is telling it — builder, kid, official, historian." },
+  { id: "era", label: "Era", hint: "The same practice across different decades." },
+  { id: "genre", label: "Genre / form", hint: "Profile, how-it-works, oral history, documentary verse." },
+];
+
 const ui = {
   length: "Medium",
   goalTab: "chips",
   chips: new Set(),
   readingTarget: "Instructional",   // "Independent" | "Instructional"
   lastConfig: null,
+  // --- class set ---
+  mode: "one",                      // "one" | "set"
+  setLength: "Medium",
+  setPlan: null,                    // parsed stage-1 plan
+  setCfg: null,                     // the config that produced it
+  setTexts: [],                     // parsed texts, index-aligned to plan.texts
+  setMaterials: null,               // glossary etc.
+  packView: 0,                      // which pack panel is showing
 };
 
 // Independent = the student decodes ~90% of words cold, unsupported.
@@ -524,6 +644,702 @@ function buildControls() {
   });
 
   document.getElementById("f-generate").onclick = () => generate(null);
+}
+
+/* =============================================================
+   CLASS SET — controls
+   ============================================================= */
+function buildSetControls() {
+  // mode tabs
+  document.querySelectorAll(".modetab").forEach((b) => {
+    b.onclick = () => {
+      ui.mode = b.dataset.mode;
+      document.querySelectorAll(".modetab").forEach((x) => x.classList.toggle("on", x === b));
+      document.getElementById("mode-one").classList.toggle("hidden", ui.mode !== "one");
+      document.getElementById("mode-set").classList.toggle("hidden", ui.mode !== "set");
+      // Each mode keeps its own state and its own output. Nothing is wiped.
+      document.getElementById("placeholder").textContent =
+        ui.mode === "set"
+          ? "Describe the set on the left. You'll review the plan before any texts are written."
+          : "Set up a student on the left, then generate a text.";
+      showPlaceholderIfEmpty();
+    };
+  });
+
+  const axis = document.getElementById("s-axis");
+  AXES.forEach((a) => axis.add(new Option(a.label, a.id)));
+  const axisHint = document.getElementById("s-axis-hint");
+  const syncAxis = () => {
+    const a = AXES.find((x) => x.id === axis.value);
+    axisHint.textContent = a ? a.hint : "";
+  };
+  axis.onchange = syncAxis;
+  syncAxis();
+
+  const count = document.getElementById("s-count");
+  [4, 5, 6].forEach((n) => count.add(new Option(n + " texts", n)));
+  count.value = "5";
+  count.onchange = buildLevelRows;
+
+  const smode = document.getElementById("s-mode");
+  MODES.forEach((m) => smode.add(new Option(m, m)));
+  smode.value = "Nonfiction";
+
+  const slen = document.getElementById("s-length");
+  LENGTHS.forEach((l) => {
+    const b = document.createElement("button");
+    b.className = "chip" + (l.id === ui.setLength ? " on" : "");
+    b.textContent = l.label;
+    b.onclick = () => {
+      ui.setLength = l.id;
+      [...slen.children].forEach((c) => c.classList.remove("on"));
+      b.classList.add("on");
+    };
+    slen.appendChild(b);
+  });
+
+  const souts = document.getElementById("s-outputs");
+  [
+    ["s-o-comprehension", "Comprehension questions", true],
+    ["s-o-glossary", "Pack glossary", true],
+    ["s-o-rolling", "Rolling Knowledge Journal", true],
+    ["s-o-vocab", "Rolling Vocabulary (Sensational Six)", true],
+    ["s-o-resources", "Outside resource suggestions", true],
+  ].forEach(([id, lbl, on]) => {
+    const w = document.createElement("label");
+    w.className = "toggle";
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.id = id; cb.checked = on;
+    w.appendChild(cb);
+    w.appendChild(document.createTextNode(lbl));
+    souts.appendChild(w);
+  });
+
+  // nudge on broad themes — never blocks
+  const anchor = document.getElementById("s-anchor");
+  const BROAD = /^(friendship|heroes?|courage|perseverance|resilience|identity|change|survival|freedom|justice|family|love|growing up|overcoming|struggle|hope|belonging)\b/i;
+  anchor.addEventListener("input", () => {
+    const h = document.getElementById("s-anchor-hint");
+    if (BROAD.test(anchor.value.trim())) {
+      h.textContent = "That reads like a broad theme. Tight topics build vocabulary better — the words repeat because the content repeats.";
+      h.style.color = "#8a6d1f";
+    } else {
+      h.textContent = "Tight topics build vocabulary better than broad themes.";
+      h.style.color = "";
+    }
+  });
+
+  document.getElementById("s-spread").onclick = spreadLevels;
+  document.getElementById("s-plan").onclick = planSet;
+  buildLevelRows();
+}
+
+function buildLevelRows() {
+  const n = parseInt(document.getElementById("s-count").value, 10);
+  const wrap = document.getElementById("s-levels");
+  const existing = [...wrap.querySelectorAll("input")].map((i) => i.value);
+  wrap.innerHTML = "";
+  for (let i = 0; i < n; i++) {
+    const row = document.createElement("div");
+    row.className = "lvlrow";
+    const lab = document.createElement("span");
+    lab.textContent = "Text " + (i + 1);
+    const inp = document.createElement("input");
+    inp.type = "text";
+    inp.id = "s-lvl-" + i;
+    inp.placeholder = "level";
+    inp.value = existing[i] || "";
+    row.appendChild(lab); row.appendChild(inp);
+    wrap.appendChild(row);
+  }
+}
+
+// Optional shortcut: fill the rows evenly between two endpoints. Numeric
+// (Lexile / grade) interpolates; anything else just fills first and last.
+function spreadLevels() {
+  const lo = document.getElementById("s-lo").value.trim();
+  const hi = document.getElementById("s-hi").value.trim();
+  const n = parseInt(document.getElementById("s-count").value, 10);
+  if (!lo || !hi) return;
+  const nLo = parseFloat(lo.replace(/[^\d.]/g, ""));
+  const nHi = parseFloat(hi.replace(/[^\d.]/g, ""));
+  const suffix = /L\s*$/i.test(lo) || /L\s*$/i.test(hi) ? "L" : "";
+  for (let i = 0; i < n; i++) {
+    const el = document.getElementById("s-lvl-" + i);
+    if (!el) continue;
+    if (!isNaN(nLo) && !isNaN(nHi) && n > 1) {
+      const v = Math.round(nLo + ((nHi - nLo) * i) / (n - 1));
+      el.value = v + suffix;
+    } else {
+      el.value = i === 0 ? lo : i === n - 1 ? hi : "";
+    }
+  }
+}
+
+function gatherSetConfig() {
+  const n = parseInt(document.getElementById("s-count").value, 10);
+  const levels = [];
+  for (let i = 0; i < n; i++) levels.push((document.getElementById("s-lvl-" + i) || {}).value?.trim() || "");
+  const axisId = document.getElementById("s-axis").value;
+  return {
+    anchor: val("s-anchor"),
+    axis: (AXES.find((a) => a.id === axisId) || AXES[0]).label,
+    count: n,
+    levels,
+    keepVocab: val("s-vocab"),
+    mode: document.getElementById("s-mode").value,
+    length: ui.setLength,
+    outputs: {
+      comprehension: checked("s-o-comprehension"),
+      glossary: checked("s-o-glossary"),
+      rolling: checked("s-o-rolling"),
+      vocab: checked("s-o-vocab"),
+      resources: checked("s-o-resources"),
+    },
+  };
+}
+
+/* =============================================================
+   CLASS SET — stage 1: the plan
+   ============================================================= */
+function buildSetPlanPrompt(cfg) {
+  return `You are planning a WIDE-READING SET (an "expert pack") for one classroom.
+
+A set is several ORIGINAL texts on ONE tight topic, read by ONE class, each written at a DIFFERENT reading level set by the teacher, all sharing a common vocabulary. Every student reads a text they can actually read. The class then discusses one subject together as equals.
+
+ANCHOR TOPIC: ${cfg.anchor}
+WHAT VARIES ACROSS THE SET: ${cfg.axis}
+NUMBER OF TEXTS: ${cfg.count}
+LEVELS (assigned by the teacher, in order): ${cfg.levels.map((l, i) => `Text ${i + 1}: ${l || "(unspecified)"}`).join(" · ")}
+${cfg.keepVocab ? `TEACHER'S REQUIRED VOCABULARY (these MUST be in the shared list): ${cfg.keepVocab}` : ""}
+
+Output ONLY the marked sections below. No preamble.
+
+===SHAREDVOCAB===
+5–8 words carrying this topic's core concepts — the words this class will discuss.
+- Choose words that genuinely recur across EVERY angle of this topic, not decoration.
+- Prefer Academic Word List words and domain terms that transfer beyond this unit.
+- One per line: WORD — plain-language meaning, under 12 words.
+
+===TEXTS===
+For each text, exactly these lines:
+
+TEXT n
+ANGLE: the specific value of the varying axis — a NAMED culture, a NAMED discipline, a specific POV, a specific era, or a named form. Never generic.
+SUBJECT: the specific real person, place, event, or practice this text is about. Specific, real, and DIFFERENT from every other text in the set.
+COVERS: one sentence — what this text gives the reader that NO other text in the set gives.
+${cfg.outputs.resources ? `
+===RESOURCES===
+3–5 outside resources a teacher could add to this pack.
+
+ABSOLUTE RULE — NEVER OUTPUT A URL, LINK, OR WEB ADDRESS. You will get them wrong, and a teacher handing a dead link to students finds out in front of the class. Name the SOURCE TYPE and what to search for instead.
+
+PUBLIC DOMAIN ONLY. Suggest only:
+- US federal government sources (public domain): NOAA, NASA, National Park Service, Library of Congress, USGS, Smithsonian, National Archives, CDC, NIH, USDA, Census Bureau.
+- Works published before 1929.
+Never suggest a commercial publisher, news outlet, magazine, textbook, or subscription site.
+
+One per line, exactly this format:
+TYPE: kind of resource (article · photograph collection · diagram · data set · oral history · film footage · map) | SOURCE: which public-domain body likely holds it | LOOK FOR: what to search for, in plain words | WHY: one short line on what it adds` : ""}
+
+HARD RULES FOR THE PLAN:
+- The texts must not be paraphrases of one another. Each SUBJECT must be genuinely different — a different person, place, or practice. The topic is shared; the subject is not.
+- The lowest-level text is NOT the simple version of another text. It gets its own subject and its own angle, chosen because it can be told well at that level. It must give the class something no other text gives.
+- For culture/geography sets: name specific communities, nations, and places. Never a region standing in for a people. Insider accounts, never encyclopedia entries.
+- Do not plan a text about restricted or sacred knowledge (for example, specific Indigenous ceremonies). Anchor on what communities have made public: the meaning of practices, community-authored accounts, documented history and revitalisation. Always name the nation.`;
+}
+
+function parsePlan(raw) {
+  const map = { SHAREDVOCAB: "vocab", TEXTS: "texts", RESOURCES: "resources" };
+  const out = { vocab: "", texts: "", resources: "" };
+  const parts = raw.split(/===\s*([A-Z]+)\s*===/g);
+  for (let i = 1; i < parts.length; i += 2) {
+    const k = map[parts[i].trim()];
+    if (k) out[k] = (parts[i + 1] || "").trim();
+  }
+  // structure the texts block
+  const texts = [];
+  out.texts.split(/\n(?=TEXT\s*\d)/i).forEach((chunk) => {
+    const g = (re) => (chunk.match(re) || [])[1]?.trim() || "";
+    const angle = g(/ANGLE:\s*(.*)/i);
+    const subject = g(/SUBJECT:\s*(.*)/i);
+    const covers = g(/COVERS:\s*(.*)/i);
+    if (angle || subject) texts.push({ angle, subject, covers });
+  });
+  return {
+    vocabRaw: out.vocab,
+    vocab: out.vocab.split("\n").map((l) => l.trim()).filter(Boolean),
+    texts,
+    resources: out.resources.split("\n").map((l) => l.trim()).filter((l) => /TYPE:/i.test(l)),
+  };
+}
+
+async function callModel(prompt, maxTokens) {
+  const res = await fetch(GENERATE_URL, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ model: MODEL, max_tokens: maxTokens || 4000, messages: [{ role: "user", content: prompt }] }),
+  });
+  // The proxy must return JSON. If it returns HTML, the route is missing (404)
+  // or the function crashed (500) — say so plainly instead of leaking a
+  // JSON parse error.
+  const body = await res.text();
+  let data;
+  try {
+    data = JSON.parse(body);
+  } catch (_) {
+    if (res.status === 404) throw new Error("The server can't find /api/generate (404). Check that api/generate.js exists in the repo.");
+    if (res.status >= 500) throw new Error("The server function crashed (" + res.status + "). Check the Vercel logs for api/generate.");
+    throw new Error("The server returned a web page instead of data (status " + res.status + "). Check api/generate.js in the repo.");
+  }
+  if (data.error) {
+    const msg = typeof data.error === "string" ? data.error : (data.error.message || "error");
+    throw new Error(msg);
+  }
+  const text = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("\n");
+  if (!text) throw new Error("Empty response from the model.");
+  return text;
+}
+
+async function planSet() {
+  const cfg = gatherSetConfig();
+  if (!cfg.anchor) { setErr("Give the set an anchor topic first."); return; }
+  if (cfg.levels.every((l) => !l)) { setErr("Set a level for at least one text."); return; }
+
+  ui.setCfg = cfg;
+  const btn = document.getElementById("s-plan");
+  btn.disabled = true; btn.textContent = "Planning…";
+  clearErr();
+  document.getElementById("placeholder").classList.add("hidden");
+  document.getElementById("output").innerHTML = `<div class="placeholder">Planning the set…</div>`;
+
+  try {
+    const raw = await callModel(buildSetPlanPrompt(cfg), 2000);
+    ui.setPlan = parsePlan(raw);
+    renderPlanReview();
+  } catch (e) {
+    document.getElementById("output").innerHTML = "";
+    setErr("Planning failed: " + (e.message || "unknown error"));
+  } finally {
+    btn.disabled = false; btn.textContent = "Plan the set";
+  }
+}
+
+/* ---------- plan review (editable before anything is written) ---------- */
+function renderPlanReview() {
+  const p = ui.setPlan, cfg = ui.setCfg;
+  const rows = p.texts.map((t, i) => `
+    <div class="planrow">
+      <span class="planlvl">Text ${i + 1} · ${escapeHtml(cfg.levels[i] || "level not set")}</span>
+      <label>Angle</label><input type="text" id="p-angle-${i}" value="${escapeHtml(t.angle)}" />
+      <label>Subject</label><input type="text" id="p-subject-${i}" value="${escapeHtml(t.subject)}" />
+      <label>What only this text gives</label><input type="text" id="p-covers-${i}" value="${escapeHtml(t.covers)}" />
+    </div>`).join("");
+
+  const res = p.resources.length
+    ? `<div class="plan"><h3>Outside resources to find</h3>
+       <p class="sub">Public domain only. Source types, not links — you find the actual item.</p>
+       ${p.resources.map((r) => `<div class="resline">${
+         escapeHtml(r).replace(/(TYPE|SOURCE|LOOK FOR|WHY):/g, "<b>$1:</b>")
+       }</div>`).join("")}</div>`
+    : "";
+
+  document.getElementById("output").innerHTML = `
+    <div class="plan">
+      <h3>Shared vocabulary</h3>
+      <p class="sub">These words run through every text — that repetition is what makes them stick. Edit freely.</p>
+      <textarea id="p-vocab" rows="${Math.max(5, p.vocab.length + 1)}">${escapeHtml(p.vocab.join("\n"))}</textarea>
+    </div>
+    <div class="plan">
+      <h3>The ${p.texts.length} texts</h3>
+      <p class="sub">Each is its own subject at the level you set — not an easier version of another.</p>
+      ${rows}
+    </div>
+    ${res}`;
+
+  const bar = document.getElementById("actionbar");
+  bar.innerHTML = "";
+  bar.appendChild(mkBtn("Write the texts →", generateSetTexts));
+  const sp = document.createElement("div"); sp.className = "spacer"; bar.appendChild(sp);
+  bar.appendChild(mkBtn("Re-plan", planSet));
+  bar.classList.remove("hidden");
+}
+
+function readEditedPlan() {
+  const p = ui.setPlan;
+  p.vocab = document.getElementById("p-vocab").value.split("\n").map((l) => l.trim()).filter(Boolean);
+  p.texts = p.texts.map((t, i) => ({
+    angle: (document.getElementById("p-angle-" + i) || {}).value || t.angle,
+    subject: (document.getElementById("p-subject-" + i) || {}).value || t.subject,
+    covers: (document.getElementById("p-covers-" + i) || {}).value || t.covers,
+  }));
+  return p;
+}
+
+/* =============================================================
+   CLASS SET — stage 2: the texts (parallel)
+   ============================================================= */
+function buildSetTextPrompt(cfg, plan, i) {
+  const t = plan.texts[i];
+  const level = cfg.levels[i] || "";
+  const lengthObj = LENGTHS.find((l) => l.id === cfg.length) || LENGTHS[1];
+
+  const p = [];
+  p.push(`You are writing ONE text for a wide-reading set used in a literacy intervention classroom. Readers are older than the texts usually written at their level — give them something intellectually serious and culturally alive, written at the level specified.`);
+  p.push(CONSTITUTION);
+  p.push(`THIS TEXT IS PART OF A WIDE-READING SET. The whole class is reading about the same topic at different levels.
+
+ANCHOR TOPIC: ${cfg.anchor}
+THIS TEXT'S ANGLE: ${t.angle}
+THIS TEXT'S SUBJECT: ${t.subject}
+WHAT ONLY THIS TEXT GIVES: ${t.covers}
+THIS TEXT'S READING LEVEL: ${level}
+MODE: ${cfg.mode}
+LENGTH: about ${lengthObj.target} words
+
+SHARED VOCABULARY — the whole class is learning these:
+${plan.vocab.join("\n")}
+
+HANDLING THE SHARED VOCABULARY AT THIS TEXT'S LEVEL:
+- If a shared word IS readable at this level → USE IT, marked with *single asterisks*. Use as many as fit naturally.
+- If a shared word is NOT readable at this level → KEEP THE WORD OUT, PUT THE CONCEPT IN. Show the idea in words this student can read. List the word in the teacher note under FRONT-LOAD. The student meets the concept in print and the word from their teacher, and arrives at the discussion holding both.
+- Never force an unreadable word in to satisfy the shared list. The concept is the requirement; the word is required only where it's readable.
+
+THIS TEXT MUST STAND ALONE — HARD RULE:
+- It is NOT a simplified version of another text in the set. Its own story, own subject, own angle.
+- A student who reads ONLY this text must come away with something no one else in the class has. They should have something to CONTRIBUTE, not something to catch up on.
+- Never write a lower-level text as a diminished retelling. Same dignity, same specificity, same intellectual seriousness — different subject, told at a level this reader can read.
+
+REQUIRED, for any real person, place, or event:
+- A real named PLACE, a real YEAR or era, real named PEOPLE where they exist.
+- A real IDEA — but an idea is NOT a fight. Craft, mastery, invention, patience, style, community, inheritance are real ideas and they are enough.
+- DO NOT MANUFACTURE CONFLICT. Never assume a community's story needs oppression in it to be worth telling — the achievement IS the story. Never default to tragedy.
+- If a struggle IS genuinely central: tell it honestly. No tidy victories that did not happen.
+
+CONSTRAINT HIERARCHY — obey absolutely:
+NEVER YIELDS: reading level · conceptual depth · cultural integrity · factual truth
+YIELDS, IN ORDER: vocabulary precision → sentence structure → FORM
+- Can't name a concept at this level? SHOW it in words the reader can read.
+- Prose going flat or thin? SWITCH TO FREE VERSE before you simplify the subject. The lowest-level text carries the most risk of going thin. It must not.
+- Mode and facts never change. Nonfiction that shifts form becomes informational verse — still entirely true. Never invent people or events.
+- NEVER split a word into syllables to fake decodability.`);
+
+  const sections = ["===TEXT==="];
+  const fmt = [`OUTPUT FORMAT — return ONLY the sections below, each marker on its own line. No preamble.`,
+`===TEXT===
+Title on the first line, then the passage. Italicise shared-vocabulary words with *single asterisks*. Never use **bold**.`];
+
+  if (cfg.outputs.comprehension) {
+    sections.push("===COMPREHENSION===");
+    fmt.push(`===COMPREHENSION===
+3 to 4 questions, decodable at this text's level. Readable does NOT mean trivial — no yes/no questions, none answerable by guessing. Every question must send the student back into the text. Number each.`);
+  }
+  sections.push("===TEACHERNOTE===");
+  fmt.push(`===TEACHERNOTE===
+For the teacher only, never shown to the student. These lines:
+FORM: the form used and, in one sentence, why — especially if you shifted to verse.
+FRONT-LOAD: shared-vocabulary words you kept OUT of this text for the teacher to teach verbally. If none, write "none".
+WATCH: one sentence on what to watch for as this student reads.
+VERIFY: real people, organisations, dates or events in this text for the teacher to fact-check. Named organisations paired with specific years are the most error-prone. If none, write "none".`);
+
+  p.push(fmt.join("\n\n"));
+  p.push(`Sections to include, in order: ${sections.join(" ")}`);
+  p.push(`OUTPUT DISCIPLINE — READ LAST, OBEY ABSOLUTELY:
+Your FIRST characters must be "===TEXT===". Do NOT write anything before it — no planning, no reasoning, no word-by-word audit, no drafts. Do that work invisibly. Any text before ===TEXT=== is a failure.`);
+  return p.join("\n\n");
+}
+
+async function generateSetTexts() {
+  const cfg = ui.setCfg;
+  const plan = readEditedPlan();
+  clearErr();
+
+  document.getElementById("actionbar").classList.add("hidden");
+  document.getElementById("output").innerHTML =
+    `<div class="placeholder">Writing ${plan.texts.length} texts…<br><span style="font-size:13px">All at once, so this takes about as long as one.</span></div>`;
+
+  try {
+    const results = await Promise.all(
+      plan.texts.map((_, i) => callModel(buildSetTextPrompt(cfg, plan, i), 3000).catch((e) => "ERROR:" + e.message))
+    );
+    ui.setTexts = results.map((raw) => {
+      if (raw.startsWith("ERROR:")) return { error: raw.slice(6) };
+      let t = raw;
+      const cut = t.indexOf("===TEXT===");
+      if (cut > 0) t = t.slice(cut); else if (cut < 0) t = "===TEXT===\n" + t;
+      return parseSections(t);
+    });
+
+    if (cfg.outputs.glossary) {
+      document.getElementById("output").innerHTML = `<div class="placeholder">Building the glossary…</div>`;
+      ui.setMaterials = await buildGlossary(cfg, plan);
+    } else {
+      ui.setMaterials = null;
+    }
+    ui.packView = 0;
+    renderPack();
+  } catch (e) {
+    document.getElementById("output").innerHTML = "";
+    setErr("Generation failed: " + (e.message || "unknown error"));
+  }
+}
+
+/* =============================================================
+   CLASS SET — stage 3: pack materials
+   ============================================================= */
+async function buildGlossary(cfg, plan) {
+  const body = ui.setTexts.map((t, i) =>
+    t.error ? "" : `--- TEXT ${i + 1}: ${firstLine(t.text)} ---\n${(t.text || "").replace(/\*/g, "")}`
+  ).filter(Boolean).join("\n\n");
+
+  const prompt = `Build a GLOSSARY for a wide-reading pack on: ${cfg.anchor}
+
+Here are the texts in order:
+
+${body}
+
+===GLOSSARY===
+- Include words that cannot be worked out from context, would block comprehension, or are essential to the pack's core ideas.
+- Group under the text where the word FIRST appears.
+- EACH WORD APPEARS ONCE IN THE WHOLE GLOSSARY, at its first appearance — even though the word recurs in later texts. That recurrence is the point; a repeated glossary entry would undercut it.
+- Definitions are informal and explain the word AS USED IN THIS PACK, not dictionary definitions.
+- Format: under a line "TEXT n: <title>", one word per line as "WORD — meaning in this pack's context".
+
+Output ONLY the ===GLOSSARY=== section. Nothing before it.`;
+
+  const raw = await callModel(prompt, 2000);
+  const cut = raw.indexOf("===GLOSSARY===");
+  return { glossary: (cut >= 0 ? raw.slice(cut + 14) : raw).trim() };
+}
+
+function firstLine(block) {
+  return (block || "").split("\n").map((l) => l.trim()).filter(Boolean)[0] || "";
+}
+
+function setErr(msg) {
+  const e = document.getElementById("error");
+  e.textContent = msg; e.classList.remove("hidden");
+}
+function clearErr() { document.getElementById("error").classList.add("hidden"); }
+function showPlaceholderIfEmpty() {
+  const out = document.getElementById("output");
+  const empty = !out.innerHTML.trim();
+  document.getElementById("placeholder").classList.toggle("hidden", !empty);
+}
+
+/* =============================================================
+   CLASS SET — rendering the pack
+   ============================================================= */
+function renderPack() {
+  const cfg = ui.setCfg, plan = ui.setPlan;
+  const panels = [];
+
+  panels.push({ label: "Set map", render: renderSetMap });
+  ui.setTexts.forEach((t, i) => {
+    panels.push({ label: `Text ${i + 1}`, render: () => renderPackText(i) });
+  });
+  if (cfg.outputs.glossary && ui.setMaterials) panels.push({ label: "Glossary", render: renderGlossary });
+  if (cfg.outputs.rolling) panels.push({ label: "Knowledge journal", render: renderRollingKnowledge });
+  if (cfg.outputs.vocab) panels.push({ label: "Vocabulary journal", render: renderRollingVocab });
+
+  const nav = panels.map((p, i) =>
+    `<button class="${i === ui.packView ? "on" : ""}" data-i="${i}">${escapeHtml(p.label)}</button>`).join("");
+
+  document.getElementById("output").innerHTML =
+    `<div class="packnav">${nav}</div><div class="packtext" id="packbody"></div>`;
+
+  document.querySelectorAll(".packnav button").forEach((b) => {
+    b.onclick = () => { ui.packView = parseInt(b.dataset.i, 10); renderPack(); };
+  });
+  document.getElementById("packbody").innerHTML = panels[ui.packView].render();
+
+  const bar = document.getElementById("actionbar");
+  bar.innerHTML = "";
+  bar.appendChild(mkBtn("← Back to plan", renderPlanReview));
+  if (ui.packView > 0 && ui.packView <= ui.setTexts.length) {
+    bar.appendChild(mkBtn("Rewrite this text", () => regenerateOne(ui.packView - 1)));
+  }
+  const sp = document.createElement("div"); sp.className = "spacer"; bar.appendChild(sp);
+  bar.appendChild(mkBtn("Print whole pack", printPack));
+  bar.classList.remove("hidden");
+}
+
+function renderSetMap() {
+  const cfg = ui.setCfg, plan = ui.setPlan;
+  const rows = plan.texts.map((t, i) => `
+    <div class="planrow">
+      <span class="planlvl">Text ${i + 1} · ${escapeHtml(cfg.levels[i] || "—")}</span>
+      <div style="font-size:15px;font-weight:bold;">${escapeHtml(t.subject)}</div>
+      <div style="font-size:13px;color:#666;margin:2px 0 4px;">${escapeHtml(t.angle)}</div>
+      <div style="font-size:13px;">${escapeHtml(t.covers)}</div>
+    </div>`).join("");
+
+  const res = plan.resources.length ? `
+    <div class="plan"><h3>Outside resources to find</h3>
+      <p class="sub">Public domain only. Source types, not links — you find the actual item.</p>
+      ${plan.resources.map((r) => `<div class="resline">${escapeHtml(r).replace(/(TYPE|SOURCE|LOOK FOR|WHY):/g, "<b>$1:</b>")}</div>`).join("")}
+    </div>` : "";
+
+  return `
+    <div class="plan"><h3>${escapeHtml(cfg.anchor)}</h3>
+      <p class="sub">${plan.texts.length} texts · varying by ${escapeHtml(cfg.axis.toLowerCase())}</p>
+      <div style="font-size:13px;"><b>Shared vocabulary:</b> ${escapeHtml(plan.vocab.join(" · "))}</div>
+    </div>
+    <div class="plan"><h3>The texts</h3>${rows}</div>
+    ${res}`;
+}
+
+function renderPackText(i) {
+  const t = ui.setTexts[i];
+  if (!t) return "";
+  if (t.error) return `<div class="err">This text failed: ${escapeHtml(t.error)}</div>`;
+  const note = t.teachernote ? teacherNoteHtml(t.teachernote) : "";
+  return note + sectionsHtml(t, { inline: false });
+}
+
+function teacherNoteHtml(raw) {
+  return `<div class="tnote">
+    <div class="tnote-h">Teacher note — not printed for students</div>
+    ${raw.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => {
+      const m = l.match(/^(FORM|FRONT-LOAD|WATCH|VERIFY|PRECISION|LEVEL):\s*(.*)$/i);
+      return m ? `<p><strong>${escapeHtml(cap(m[1]))}:</strong> ${escapeHtml(m[2])}</p>` : `<p>${escapeHtml(l)}</p>`;
+    }).join("")}
+  </div>`;
+}
+
+function renderGlossary() {
+  const g = (ui.setMaterials || {}).glossary || "";
+  const html = g.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => {
+    if (/^TEXT\s*\d/i.test(l)) return `<div class="seclbl">${escapeHtml(l)}</div>`;
+    const m = l.match(/^(.+?)\s*[—–-]\s*(.+)$/);
+    return m
+      ? `<p style="font-size:14px;line-height:1.5;margin:5px 0;"><b>${escapeHtml(m[1].replace(/^[-•*]\s*/, ""))}</b> — ${escapeHtml(m[2])}</p>`
+      : `<p style="font-size:14px;">${escapeHtml(l)}</p>`;
+  }).join("");
+  return `<p class="hint" style="margin-bottom:14px">Each word appears once, at the text where it first shows up. It recurs in later texts on purpose — that repetition is how it sticks.</p>${html}`;
+}
+
+/* ---- STUDENT-COMPLETED SCAFFOLDS ------------------------------------
+   Renderer-enforced blank. The model supplies titles and structure only;
+   every response cell is empty no matter what any model produced. Same
+   rule as TWR activities C and D — a filled-in scaffold is a destroyed
+   activity.
+--------------------------------------------------------------------- */
+function renderRollingKnowledge() {
+  const rows = ui.setTexts.map((t, i) => {
+    const title = t.error ? `Text ${i + 1}` : (firstLine(t.text) || `Text ${i + 1}`);
+    const third = i === 0
+      ? `<td></td>`
+      : `<td></td>`;
+    return `<tr><td class="lbl-cell">${escapeHtml(title)}</td><td></td>${third}</tr>`;
+  }).join("");
+  return `
+    <p class="hint" style="margin-bottom:4px">After each text: what was the big learning? Then — how does it add to the text before it? That second column is what turns separate readings into one body of knowledge.</p>
+    <p class="hint" style="margin-bottom:14px">Row one has nothing before it — connect it to anything else you already know.</p>
+    <table class="jtable">
+      <tr><th>Text</th><th>What I learned that was new and important</th><th>How this adds to what I learned before</th></tr>
+      ${rows}
+    </table>`;
+}
+
+function renderRollingVocab() {
+  const blocks = ui.setTexts.map((t, i) => {
+    const title = t.error ? `Text ${i + 1}` : (firstLine(t.text) || `Text ${i + 1}`);
+    const slots = Array.from({ length: 6 }).map((_, n) =>
+      `<div style="display:flex;gap:8px;align-items:center;"><span style="font-size:12px;color:#999;width:14px">${n + 1}</span><div class="vocabslot" style="flex:1"></div></div>`).join("");
+    const sentences = Array.from({ length: 6 }).map(() => `<div class="vocabslot"></div>`).join("");
+    return `<div class="seclbl">${escapeHtml(title)}</div>
+      <p class="hint">Six words from this text that carry its main idea:</p>${slots}
+      <p class="hint" style="margin-top:10px">Now one sentence for each word:</p>${sentences}`;
+  }).join("");
+
+  const finalSlots = Array.from({ length: 6 }).map((_, n) =>
+    `<div style="display:flex;gap:8px;align-items:center;"><span style="font-size:12px;color:#999;width:14px">${n + 1}</span><div class="vocabslot" style="flex:1"></div></div>`).join("");
+  const summary = Array.from({ length: 5 }).map(() => `<div class="vocabslot"></div>`).join("");
+
+  return `<p class="hint" style="margin-bottom:14px">Six words per text. At the end, pick the best six from the whole pack and use them to sum up what you learned.</p>
+    ${blocks}
+    <div class="seclbl" style="border-color:var(--blue)">The Sensational Six — from the whole pack</div>
+    ${finalSlots}
+    <p class="hint" style="margin-top:10px">Use all six to summarise what this pack taught you:</p>${summary}`;
+}
+
+async function regenerateOne(i) {
+  const cfg = ui.setCfg, plan = ui.setPlan;
+  const body = document.getElementById("packbody");
+  if (body) body.innerHTML = `<div class="placeholder">Rewriting text ${i + 1}…</div>`;
+  try {
+    let raw = await callModel(buildSetTextPrompt(cfg, plan, i), 3000);
+    const cut = raw.indexOf("===TEXT===");
+    if (cut > 0) raw = raw.slice(cut); else if (cut < 0) raw = "===TEXT===\n" + raw;
+    ui.setTexts[i] = parseSections(raw);
+    renderPack();
+  } catch (e) {
+    setErr("Rewrite failed: " + (e.message || "unknown error"));
+    renderPack();
+  }
+}
+
+function printPack() {
+  const cfg = ui.setCfg, plan = ui.setPlan;
+  const today = new Date().toLocaleDateString();
+  let html = `<h1 style="font-size:24px;margin:0 0 4px;">${escapeHtml(cfg.anchor)}</h1>
+    <p style="font-size:13px;color:#555;margin:0 0 20px;">${plan.texts.length} texts · shared vocabulary: ${escapeHtml(plan.vocab.map((v) => v.split(/[—–-]/)[0].trim()).join(", "))}</p>`;
+
+  ui.setTexts.forEach((t, i) => {
+    if (t.error) return;
+    html += `<div style="page-break-before:always;"></div>
+      <p style="font-size:12px;color:#666;margin:0 0 6px;">Text ${i + 1} · ${escapeHtml(cfg.levels[i] || "")}</p>`;
+    html += sectionsHtml(t, { inline: true });
+  });
+
+  if (ui.setMaterials && ui.setMaterials.glossary) {
+    html += `<div style="page-break-before:always;"></div><h2 style="font-size:19px;">Glossary</h2>`;
+    html += ui.setMaterials.glossary.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => {
+      if (/^TEXT\s*\d/i.test(l)) return `<div style="font-weight:bold;margin:14px 0 4px;">${escapeHtml(l)}</div>`;
+      const m = l.match(/^(.+?)\s*[—–-]\s*(.+)$/);
+      return m ? `<p style="font-size:14px;margin:4px 0;"><b>${escapeHtml(m[1].replace(/^[-•*]\s*/, ""))}</b> — ${escapeHtml(m[2])}</p>`
+               : `<p style="font-size:14px;">${escapeHtml(l)}</p>`;
+    }).join("");
+  }
+
+  // student journals — blank by construction
+  const ruled = `<div style="height:26px;border-bottom:1px solid #ccc;margin:9px 0;"></div>`;
+  if (cfg.outputs.rolling) {
+    html += `<div style="page-break-before:always;"></div><h2 style="font-size:19px;">Rolling Knowledge Journal</h2>
+      <table style="width:100%;border-collapse:collapse;margin-top:10px;">
+      <tr><th style="text-align:left;font-size:11px;padding:6px;border-bottom:2px solid #1d4e8f;">Text</th>
+      <th style="text-align:left;font-size:11px;padding:6px;border-bottom:2px solid #1d4e8f;">What I learned</th>
+      <th style="text-align:left;font-size:11px;padding:6px;border-bottom:2px solid #1d4e8f;">How it adds to what came before</th></tr>`;
+    ui.setTexts.forEach((t, i) => {
+      const title = t.error ? `Text ${i + 1}` : (firstLine(t.text) || `Text ${i + 1}`);
+      html += `<tr><td style="border:1px solid #ddd;padding:8px;font-size:13px;font-weight:bold;width:22%;height:70px;">${escapeHtml(title)}</td><td style="border:1px solid #ddd;"></td><td style="border:1px solid #ddd;"></td></tr>`;
+    });
+    html += `</table>`;
+  }
+  if (cfg.outputs.vocab) {
+    html += `<div style="page-break-before:always;"></div><h2 style="font-size:19px;">Rolling Vocabulary — Sensational Six</h2>`;
+    ui.setTexts.forEach((t, i) => {
+      const title = t.error ? `Text ${i + 1}` : (firstLine(t.text) || `Text ${i + 1}`);
+      html += `<div style="font-weight:bold;margin:16px 0 6px;">${escapeHtml(title)}</div>`;
+      html += Array.from({ length: 6 }).map(() => ruled).join("");
+    });
+    html += `<div style="page-break-before:always;"></div><h2 style="font-size:19px;">The Sensational Six — whole pack</h2>`;
+    html += Array.from({ length: 6 }).map(() => ruled).join("");
+    html += `<p style="font-size:14px;margin-top:14px;">Use all six to summarise what this pack taught you:</p>`;
+    html += Array.from({ length: 6 }).map(() => ruled).join("");
+  }
+
+  const doc = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHtml(cfg.anchor)}</title></head>
+    <body style="font-family:Arial,Helvetica,sans-serif;color:#1a1a1a;max-width:720px;margin:30px auto;padding:0 24px;background:#fff;">
+    <div style="display:flex;justify-content:space-between;font-size:13px;color:#555;border-bottom:2px solid #1d4e8f;padding-bottom:8px;margin-bottom:22px;">
+      <span><strong>ReadRise pack</strong></span><span>${today}</span></div>
+    ${html}</body></html>`;
+
+  const w = window.open("", "_blank");
+  if (!w) { alert("Allow pop-ups to print."); return; }
+  w.document.write(doc); w.document.close(); w.focus();
+  setTimeout(() => w.print(), 400);
 }
 
 function recomputeGridAuto() {
@@ -982,7 +1798,15 @@ async function generate(adjustment) {
         messages: [{ role: "user", content: prompt }],
       }),
     });
-    const data = await res.json();
+    const body = await res.text();
+    let data;
+    try {
+      data = JSON.parse(body);
+    } catch (_) {
+      if (res.status === 404) throw new Error("The server can't find /api/generate (404). Check that api/generate.js exists in the repo.");
+      if (res.status >= 500) throw new Error("The server function crashed (" + res.status + "). Check the Vercel logs for api/generate.");
+      throw new Error("The server returned a web page instead of data (status " + res.status + "). Check api/generate.js in the repo.");
+    }
     if (data.error) {
       const msg = typeof data.error === "string" ? data.error : (data.error.message || JSON.stringify(data.error));
       throw new Error(msg);
@@ -1119,6 +1943,7 @@ function renderFeedback(cfg) {
 
 /* boot */
 buildControls();
+buildSetControls();
 </script>
 </body>
 </html>
