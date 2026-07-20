@@ -338,9 +338,18 @@ pilot volume, API cost is dollars/month; don't sacrifice text quality to save pe
 3. **The artifact is for iterating; the hosted app is for shipping.** Don't reintroduce artifact-only
    patterns (pop-ups, inline key entry) into the hosted app.
 4. **Deploy = commit → Vercel auto-redeploys.** Then test in incognito with a fresh generation (§3).
+   **Default behavior: commit and push changes straight to `main`** — the user wants this, and
+   `main` is the production branch (auto-deploys). Don't ask for permission each time; just do it
+   and report what was pushed and the deploy result. (Still pause to confirm only for genuinely
+   destructive or irreversible actions — e.g. history rewrites, force-pushes, deleting data.)
 5. **Keep the model constant in sync** across `index.html` and `api/generate.js`.
 6. When you change a rule that lives in a source doc, update the doc in the Claude project too —
    this file summarizes them and must not silently drift.
+7. **Keep this CLAUDE.md current as you go.** At the end of any significant development chunk
+   (a feature shipped, an architecture/workflow change, a new decision or constraint, a roadmap
+   item completed or reprioritized), update the relevant section here so the file never drifts
+   from reality. Fold it into the same commit/push as the work it documents. This is the user's
+   standing instruction, not optional cleanup.
 
 ---
 
