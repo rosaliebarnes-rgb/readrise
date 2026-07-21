@@ -2,8 +2,8 @@
    Server-only in practice (imported by the API route) — keeps the constitution
    out of the browser bundle. */
 
-import { LENGTHS, STAGES, type Stage } from "./domain";
-import type { GenConfig, StudentProfile } from "./types";
+import { AXES, LENGTHS, STAGES, type Stage } from "./domain";
+import type { GenConfig, PlannedText, SetConfig, StudentProfile } from "./types";
 
 export function resolveStage(profile: StudentProfile): Stage | null {
   return STAGES.find((s) => s.id === profile.stage) || null;
@@ -266,5 +266,102 @@ Your FIRST characters must be "===TEXT===". Do NOT write anything before it — 
       `ADJUSTMENT — TIGHTER PHONICS: Adhere more strictly to the phonics level "${profile.phonicsLevel}". Favor words that fit the pattern; swap out off-pattern multisyllabic words where you can without flattening meaning.`,
     );
   }
+  return p.join("\n\n");
+}
+
+/* ---------------------------------------------------------------------------
+   WIDE-READING CLASS SETS
+   Stage 1 plans the set (angles + the shared vocabulary spine); the teacher
+   reviews it; stage 2 writes each text. No student profile is involved.
+--------------------------------------------------------------------------- */
+
+export function buildSetPlanPrompt(cfg: SetConfig): string {
+  const axis = AXES.find((a) => a.id === cfg.axis) || AXES[0];
+  const n = cfg.levels.length;
+  const p: string[] = [];
+
+  p.push(
+    `You are planning a WIDE-READING SET for one class: ${n} texts on ONE anchor, written at different reading levels, sharing a single vocabulary spine. Every student reads about the same thing at their own level, so the whole class can discuss it together.`,
+  );
+  p.push(CONSTITUTION);
+  p.push(`THE SET:
+- ANCHOR (every text is about this): ${cfg.anchor}
+- WHAT VARIES ACROSS THE TEXTS: ${axis.label} — ${axis.hint}
+- NUMBER OF TEXTS: ${n}
+- READING LEVELS, in order: ${cfg.levels.map((l, i) => `text ${i + 1} = ${l.trim() || "(not set)"}`).join(" · ")}`);
+
+  p.push(`SHARED VOCABULARY — the connective tissue of the set.
+${
+  cfg.sharedVocab.trim()
+    ? `The teacher wants these words held constant in EVERY text: ${cfg.sharedVocab.trim()}. Use exactly these.`
+    : `Choose 5 or 6 words that recur naturally across every angle of this anchor — content and academic words worth repeated encounters. No proper nouns, no function words.`
+}
+Every text uses the SAME words. The repetition is the point: a student meets each word in several contexts, each at their own level.`);
+
+  p.push(`RULES FOR THE PLAN:
+- Every text shares the anchor. ONLY the ${axis.label.toLowerCase()} varies. Each text gets a distinct, specific angle — no two may cover the same ground.
+- BE SPECIFIC. Name real nations, peoples, places, and years. Never "traditions from around the world," never "a community somewhere." Cultural angles must be written from the INSIDE, as if the reader belongs to that community.
+- RESTRICTED OR SACRED KNOWLEDGE IS NOT OURS TO RENDER. Anchor only on what communities have themselves made public.
+- The LOWEST-level text must NOT go thin or babyish. Same conceptual depth as the highest — simpler words, not smaller ideas. If an angle only works at a high level, pick a different angle.
+- Do not manufacture conflict, and never default to tragedy. What people built, and how, is the story.`);
+
+  p.push(`OUTPUT FORMAT — output ONLY these two sections. No preamble, no closing remarks.
+===VOCAB===
+The shared words, comma separated, on one line.
+===PLAN===
+Exactly ${n} lines, one per text, each in THIS shape (pipe separated):
+number | Title | one sentence naming the angle and how it varies on the axis
+No extra commentary, no lines beyond ${n}.`);
+
+  return p.join("\n\n");
+}
+
+export function buildSetTextPrompt(
+  cfg: SetConfig,
+  t: PlannedText,
+  vocab: string[],
+  total: number,
+): string {
+  const axis = AXES.find((a) => a.id === cfg.axis) || AXES[0];
+  const lengthObj = LENGTHS.find((l) => l.id === cfg.length) || LENGTHS[1];
+  const p: string[] = [];
+
+  p.push(
+    `You are writing ONE text in a wide-reading set for a class. Every text in the set shares an anchor and a vocabulary spine; this one has its own angle and its own reading level. The reader is an adolescent — intellectually serious, culturally alive, written at the level specified.`,
+  );
+  p.push(CONSTITUTION);
+  p.push(`THIS TEXT:
+- Text ${t.n} of ${total} in the set
+- ANCHOR (shared by the whole set): ${cfg.anchor}
+- THIS TEXT'S ANGLE (varies on ${axis.label}): ${t.title} — ${t.angle}
+- READING LEVEL for this text: ${t.level.trim() || "(not set)"}
+- Mode: ${cfg.mode}
+- Length: about ${lengthObj.target} words (${lengthObj.words}).`);
+
+  p.push(`SHARED VOCABULARY — use EVERY one of these words naturally in this text: ${vocab.join(", ")}.
+The same words appear in every text in the set. That is deliberate: repeated encounters at different levels are how the words stick. Italicize each one with *single asterisks* where it appears. Do NOT swap them for synonyms.`);
+
+  p.push(`HITTING THE LEVEL
+- Write so a student reading at "${t.level.trim() || "this level"}" can read it. Lower levels: short sentences, high-frequency short words. Higher levels: more complex syntax and precision.
+- Decodability here is ESTIMATED from a reading level, not verified against phonics patterns.
+- A LOW-LEVEL TEXT MUST NOT GO THIN. Reduce linguistic complexity ONLY — never conceptual depth, cultural specificity, or truth. A simpler text is still about real named people, real places, real years. If prose goes flat at a low level, switch to FREE VERSE before you simplify the subject.
+- Wrap real proper nouns (names of real people and real places) in {{double curly braces}}.`);
+
+  const sections = ["===TEXT==="];
+  const fmt = [
+    `OUTPUT FORMAT — return ONLY the sections below, each under its exact marker.`,
+    `===TEXT===
+Put the title on the first line, then the passage in paragraphs separated by a blank line. Italicize the shared vocabulary with *asterisks*. Wrap proper nouns in {{curly braces}}.`,
+  ];
+  if (cfg.comprehension) {
+    sections.push("===COMPREHENSION===");
+    fmt.push(`===COMPREHENSION===
+3 to 4 comprehension questions answerable from THIS text, readable at this text's level. No yes/no questions — every question sends the student back into the text. Number each. No answer lines.`);
+  }
+  p.push(fmt.join("\n\n"));
+  p.push(`Sections to include, in this order: ${sections.join(" ")}`);
+  p.push(`OUTPUT DISCIPLINE — READ LAST, OBEY ABSOLUTELY:
+Your FIRST characters must be "===TEXT===". No planning, no reasoning, no preamble. Output every listed section under its exact marker, and nothing else.`);
+
   return p.join("\n\n");
 }

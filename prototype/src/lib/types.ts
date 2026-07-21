@@ -39,6 +39,40 @@ export interface GenConfig {
 
 export type Adjustment = "simpler" | "tighter" | null;
 
+/* ---------------------------------------------------------------------------
+   Wide-reading class sets. No student profile at all — zero privacy surface.
+   One anchor + one vary-axis + a level spread, with a shared vocabulary spine
+   held constant across every text (the repeated-encounter mechanism).
+--------------------------------------------------------------------------- */
+export interface SetConfig {
+  anchor: string; // the anchor topic
+  axis: string; // AXES id — what varies across the texts
+  sharedVocab: string; // teacher-supplied words to hold constant (optional)
+  levels: string[]; // one reading level per text, in order
+  mode: string;
+  length: string;
+  comprehension: boolean; // include questions with each text
+}
+
+export interface PlannedText {
+  n: number;
+  title: string;
+  angle: string;
+  level: string;
+}
+
+export interface SetPlan {
+  vocab: string[]; // the shared vocabulary spine
+  texts: PlannedText[];
+}
+
+export interface SetTextResult {
+  n: number;
+  title: string;
+  level: string;
+  parsed: ParsedSections;
+}
+
 export interface ParsedSections {
   text: string;
   wordgrid: string;

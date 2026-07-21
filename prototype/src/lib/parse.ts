@@ -2,7 +2,7 @@
    All pure functions, safe on client or server. Plus segment(), which powers
    the two-layer highlight in the reader. */
 
-import type { ParsedSections } from "./types";
+import type { ParsedSections, PlannedText, SetPlan } from "./types";
 
 const KEYS: Record<string, keyof ParsedSections> = {
   TEXT: "text",
@@ -145,4 +145,36 @@ export function segment(str: string): Seg[] {
   }
   if (last < str.length) out.push({ t: str.slice(last) });
   return out;
+}
+
+/* Parse the stage-1 set plan: a shared vocabulary line plus one
+   "n | Title | angle" line per text. Levels are filled in by the caller from
+   the teacher's own inputs — the model never invents them. */
+export function parseSetPlan(raw: string, levels: string[]): SetPlan {
+  const grab = (name: string) => {
+    const m = raw.match(new RegExp(`===\\s*${name}\\s*===([\\s\\S]*?)(?====|$)`, "i"));
+    return m ? m[1].trim() : "";
+  };
+
+  const vocab = grab("VOCAB")
+    .split(/[,\n]/)
+    .map((s) => s.replace(/^[-*\d.\s]+/, "").trim())
+    .filter(Boolean);
+
+  const texts: PlannedText[] = [];
+  for (const line of grab("PLAN").split("\n")) {
+    const l = line.trim();
+    if (!l || !l.includes("|")) continue;
+    const parts = l.split("|").map((s) => s.trim());
+    const n = parseInt(parts[0].replace(/\D/g, ""), 10);
+    if (!n || !parts[1]) continue;
+    texts.push({
+      n,
+      title: parts[1],
+      angle: parts.slice(2).join(" — ").trim(),
+      level: (levels[n - 1] || "").trim(),
+    });
+  }
+  texts.sort((a, b) => a.n - b.n);
+  return { vocab, texts };
 }

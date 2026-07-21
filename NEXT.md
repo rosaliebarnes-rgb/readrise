@@ -70,10 +70,16 @@ Production `readrise` (the single-file `index.html` app) is untouched until cuto
 > silently didn't ship until `--force`). Always smoke-test after deploying.
 
 ## 1. Finish the port to parity (Phase 2)
-- [ ] **Class-set builder** — anchor topic + vary-axis + level spread, shared
-      vocabulary held constant, plan-review step, pack outputs (glossary, Rolling
-      Knowledge Journal, Rolling Vocabulary / Sensational Six, outside-resource
-      suggestions), print-whole-pack.
+- [x] **Class-set builder (core)** — anchor topic + vary-axis + level spread with
+      **shared vocabulary held constant**; two-stage flow (plan → review/edit the
+      angles, titles, levels and the vocab spine → write all texts in parallel);
+      pack view with per-text nav, Copy, and Print/PDF. **No student profile is
+      collected** — zero privacy surface. Verified: a 300L and a 900L text on the
+      same anchor both used 6/6 shared words, and the low-level text stayed
+      specific and deep (named places, years, institutions), not thin.
+  - [ ] _Pack extras still to add:_ pack glossary, Rolling Knowledge Journal,
+        Rolling Vocabulary (Sensational Six), outside-resource suggestions, and
+        print-the-whole-pack (currently per-text).
 - [ ] **Feedback path** — browser → Google Apps Script → Sheet (carry over endpoint).
 - [x] **Learning goal, full version** — shipped the **"Align to: Skill · IEP goal
       · Standard"** picker (drives the comprehension-question logic).

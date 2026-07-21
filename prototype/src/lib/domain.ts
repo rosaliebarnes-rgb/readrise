@@ -85,6 +85,19 @@ export const LENGTHS = [
 
 export const MODES = ["Nonfiction", "Narrative nonfiction", "Fiction", "Either"];
 
+/* Wide-reading sets: one anchor, and ONE axis that varies across the texts. */
+export const AXES: { id: string; label: string; hint: string }[] = [
+  { id: "culture", label: "Culture / geography", hint: "Different communities, each named specifically." },
+  { id: "discipline", label: "Discipline", hint: "History, science, art, civics, personal account." },
+  { id: "pov", label: "Point of view", hint: "Who is telling it — builder, kid, official, historian." },
+  { id: "era", label: "Era", hint: "The same practice across different decades." },
+  { id: "genre", label: "Genre / form", hint: "Profile, how-it-works, oral history, documentary verse." },
+];
+
+/* Broad themes make weaker sets than tight topics — nudge, never block. */
+export const BROAD_THEME =
+  /^(friendship|heroes?|courage|perseverance|resilience|identity|change|survival|freedom|justice|family|love|growing up|overcoming|struggle|hope|belonging)\b/i;
+
 /* Skills chips — quick learning-goal alignment. */
 export const SKILLS = [
   "Vocabulary in context",

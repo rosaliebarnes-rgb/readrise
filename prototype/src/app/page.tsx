@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { CCSS, LENGTHS, MODES, SKILLS, STAGES, ccssLabel } from "@/lib/domain";
 import { READER_DEFAULT, type ReaderSettings } from "@/lib/reader";
-import type { GenConfig, ParsedSections } from "@/lib/types";
+import type { GenConfig, ParsedSections, SetConfig, SetPlan, SetTextResult } from "@/lib/types";
 import PhonicsLadder from "@/components/PhonicsLadder";
 import OutputPanel from "@/components/OutputPanel";
+import SetPanel from "@/components/SetPanel";
+import SetOutput from "@/components/SetOutput";
 
 type Target = "Independent" | "Instructional";
 
@@ -92,6 +94,85 @@ export default function Home() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [parsed, setParsed] = useState<ParsedSections | null>(null);
+
+  /* ---- class sets: their own state, so switching tabs never wipes either ---- */
+  const [setCfg, setSetCfg] = useState<SetConfig>({
+    anchor: "",
+    axis: "culture",
+    sharedVocab: "",
+    levels: ["", "", "", "", ""],
+    mode: "Nonfiction",
+    length: "Short",
+    comprehension: true,
+  });
+  const [setPlan, setSetPlan] = useState<SetPlan | null>(null);
+  const [setResults, setSetResults] = useState<SetTextResult[]>([]);
+  const [csBusy, setCsBusy] = useState(false);
+  const [setProgress, setSetProgress] = useState("");
+  const [csError, setCsError] = useState<string | null>(null);
+
+  async function planSet() {
+    setCsBusy(true);
+    setCsError(null);
+    setSetPlan(null);
+    setSetResults([]);
+    setSetProgress("Planning the set…");
+    try {
+      const res = await fetch("/api/plan-set", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ config: setCfg }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || `Request failed (${res.status}).`);
+      setSetPlan(data.plan as SetPlan);
+    } catch (e) {
+      setCsError(e instanceof Error ? e.message : "Planning failed.");
+    } finally {
+      setCsBusy(false);
+      setSetProgress("");
+    }
+  }
+
+  async function writeSet() {
+    if (!setPlan) return;
+    setCsBusy(true);
+    setCsError(null);
+    setSetProgress(`Writing ${setPlan.texts.length} texts…`);
+    try {
+      const settled = await Promise.allSettled(
+        setPlan.texts.map(async (t) => {
+          const res = await fetch("/api/set-text", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              config: setCfg,
+              planned: t,
+              vocab: setPlan.vocab,
+              total: setPlan.texts.length,
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok || data.error) throw new Error(data.error || `Text ${t.n} failed.`);
+          return { n: t.n, title: t.title, level: t.level, parsed: data.parsed } as SetTextResult;
+        }),
+      );
+      const ok = settled
+        .filter((s): s is PromiseFulfilledResult<SetTextResult> => s.status === "fulfilled")
+        .map((s) => s.value)
+        .sort((a, b) => a.n - b.n);
+      if (!ok.length) throw new Error("Every text failed to generate. Try again.");
+      if (ok.length < settled.length) {
+        setCsError(`${settled.length - ok.length} of ${settled.length} texts failed — the rest are below.`);
+      }
+      setSetResults(ok);
+    } catch (e) {
+      setCsError(e instanceof Error ? e.message : "Writing the set failed.");
+    } finally {
+      setCsBusy(false);
+      setSetProgress("");
+    }
+  }
 
   const stageObj = STAGES.find((s) => s.id === stage) || null;
   const summaries: Record<number, string> = {
@@ -229,10 +310,12 @@ export default function Home() {
           </div>
 
           {tab === "set" ? (
-            <div className="rounded-xl border border-dashed border-hair p-5 text-[13px] leading-relaxed text-ink-soft">
-              The class-set builder lands in a later phase — one anchor topic, a vary axis, and a level spread with
-              shared vocabulary held constant.
-            </div>
+            <SetPanel
+              cfg={setCfg}
+              onChange={(patch) => setSetCfg((prev) => ({ ...prev, ...patch }))}
+              onPlan={planSet}
+              busy={csBusy}
+            />
           ) : (
             <div className="divide-y divide-hair">
               <section>
@@ -550,6 +633,43 @@ export default function Home() {
 
       <main className="flex-1 bg-ground">
         <div className="mx-auto max-w-3xl px-6 py-10 md:px-10">
+          {tab === "set" ? (
+            <>
+              {csError && (
+                <div className="mb-6 rounded-xl border border-coral-ink/30 bg-coral-bg px-4 py-3 text-[14px] text-coral-ink">
+                  {csError}
+                </div>
+              )}
+              {csBusy && !setPlan ? (
+                <div className="fade-in mt-24 text-center text-[15px] text-ink-soft">
+                  <div className="mx-auto mb-4 h-6 w-6 animate-spin rounded-full border-2 border-hair border-t-pine" />
+                  Planning the set…
+                </div>
+              ) : setPlan ? (
+                <SetOutput
+                  plan={setPlan}
+                  onPlanChange={setSetPlan}
+                  results={setResults}
+                  busy={csBusy}
+                  progress={setProgress}
+                  onWrite={writeSet}
+                  reader={reader}
+                  onReaderChange={setReader}
+                />
+              ) : (
+                !csError && (
+                  <div className="mt-24 text-center">
+                    <p className="mx-auto max-w-md text-[15px] leading-relaxed text-ink-soft">
+                      Describe the set on the left, then plan it. One anchor, several texts across a
+                      level spread, sharing a vocabulary spine — so the whole class reads about the same
+                      thing and can talk together. You review the plan before any text is written.
+                    </p>
+                  </div>
+                )
+              )}
+            </>
+          ) : (
+            <>
           {error && (
             <div className="mb-6 rounded-xl border border-coral-ink/30 bg-coral-bg px-4 py-3 text-[14px] text-coral-ink">
               {error}
@@ -583,6 +703,8 @@ export default function Home() {
                 </p>
               </div>
             )
+          )}
+            </>
           )}
         </div>
       </main>
