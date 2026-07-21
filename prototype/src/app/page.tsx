@@ -34,8 +34,7 @@ type Activity =
   | "wordproblems"
   | "paragraph"
   | "sentences"
-  | "topic"
-  | "none";
+  | "topic";
 const ACTIVITIES: { key: Activity; label: string }[] = [
   { key: "comprehension", label: "Comprehension questions" },
   { key: "inference", label: "Inference questions" },
@@ -43,11 +42,10 @@ const ACTIVITIES: { key: Activity; label: string }[] = [
   { key: "paragraph", label: "Write a paragraph — main idea + 3 supports + conclusion" },
   { key: "sentences", label: "Sentence building — because / but / so, expansion" },
   { key: "topic", label: "Topic sentence — from the 5 W's" },
-  { key: "none", label: "None — just the reading text" },
 ];
 
 // activity → which TWR scaffolds the prompt emits (letters keep the renderer's
-// blank-enforcement: C = paragraph, D = 5 W's).
+// blank-enforcement: C = paragraph, D = 5 W's). Multiple activities union together.
 const TWR_PARTS: Record<Activity, string[]> = {
   comprehension: [],
   inference: [],
@@ -55,8 +53,8 @@ const TWR_PARTS: Record<Activity, string[]> = {
   paragraph: ["C"],
   sentences: ["A", "B"],
   topic: ["D"],
-  none: [],
 };
+const TWR_ORDER = ["A", "B", "C", "D"];
 
 type GoalMode = "skill" | "iep" | "standard";
 
@@ -70,8 +68,10 @@ export default function Home() {
   const [interests, setInterests] = useState("lowriders, working on cars");
 
   const [level, setLevel] = useState("");
-  const [stage, setStage] = useState<string | null>("vce");
-  const [target, setTarget] = useState<Target>("Independent");
+  // No stage is engaged until the teacher clicks one. Independent needs a stage
+  // OR a reading level, so the target starts at Instructional.
+  const [stage, setStage] = useState<string | null>(null);
+  const [target, setTarget] = useState<Target>("Instructional");
 
   const [mode, setMode] = useState("Narrative nonfiction");
   const [genre, setGenre] = useState("");
@@ -84,7 +84,7 @@ export default function Home() {
   const [phonicsPattern, setPhonicsPattern] = useState("");
 
   const [supports, setSupports] = useState({ wordGrid: true, wordCount: false });
-  const [activity, setActivity] = useState<Activity>("comprehension");
+  const [activities, setActivities] = useState<Activity[]>(["comprehension"]);
   const [requestedWords, setRequestedWords] = useState("");
   const [mathSkill, setMathSkill] = useState("");
 
@@ -110,7 +110,7 @@ export default function Home() {
         : skillChips.join(", ");
 
   function buildConfig(): GenConfig {
-    const twrParts = TWR_PARTS[activity];
+    const twrParts = TWR_ORDER.filter((p) => activities.some((a) => TWR_PARTS[a].includes(p)));
     return {
       profile: {
         name,
@@ -134,9 +134,9 @@ export default function Home() {
         text: true,
         wordGrid: supports.wordGrid,
         wordCount: supports.wordCount,
-        comprehension: activity === "comprehension",
-        inference: activity === "inference",
-        wordProblems: activity === "wordproblems",
+        comprehension: activities.includes("comprehension"),
+        inference: activities.includes("inference"),
+        wordProblems: activities.includes("wordproblems"),
         twr: twrParts.length > 0,
       },
     };
@@ -144,7 +144,7 @@ export default function Home() {
 
   const readingLevelLabel = stageObj ? stageObj.label : level || "the set reading level";
   const mathFocus =
-    activity === "wordproblems"
+    activities.includes("wordproblems")
       ? `Math focus: ${mathSkill.trim() || "teacher-set level"} · reading stays at ${readingLevelLabel}`
       : undefined;
 
@@ -494,26 +494,32 @@ export default function Home() {
                     </Field>
 
                     <Field
-                      label="Student activity — pick one"
-                      hint="One activity per text goes deeper than three shallow ones. Reuse the same text across days with a different activity each day."
+                      label="Student activities"
+                      hint="Suggested: one per text — going deep on one usually beats three shallow ones, and you can reuse the same text across days. Stack more if this student needs it. Leave all unchecked for just the reading text."
                     >
                       <div className="space-y-1.5">
-                        {ACTIVITIES.map((a) => (
-                          <label key={a.key} className="flex items-center gap-2.5 text-[13.5px] text-ink">
-                            <input
-                              type="radio"
-                              name="activity"
-                              checked={activity === a.key}
-                              onChange={() => setActivity(a.key)}
-                              className="h-4 w-4 accent-pine"
-                            />
-                            {a.label}
-                          </label>
-                        ))}
+                        {ACTIVITIES.map((a) => {
+                          const on = activities.includes(a.key);
+                          return (
+                            <label key={a.key} className="flex items-center gap-2.5 text-[13.5px] text-ink">
+                              <input
+                                type="checkbox"
+                                checked={on}
+                                onChange={() =>
+                                  setActivities((prev) =>
+                                    on ? prev.filter((x) => x !== a.key) : [...prev, a.key],
+                                  )
+                                }
+                                className="h-4 w-4 accent-pine"
+                              />
+                              {a.label}
+                            </label>
+                          );
+                        })}
                       </div>
                     </Field>
 
-                    {activity === "wordproblems" && (
+                    {activities.includes("wordproblems") && (
                       <Field
                         label="Math skill or level"
                         hint="Sets the math difficulty. The reading stays at the student's decoding level."

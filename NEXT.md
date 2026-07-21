@@ -56,6 +56,13 @@ Production `readrise` (the single-file `index.html` app) is untouched until cuto
       blend-heavy topics (band/drum/step all need blends) — a real pedagogical
       limit, not just a prompt bug. Adaptive thinking (per-word audit in thinking
       blocks) is the likely next lever.
+- [x] **Decoding stage is no longer pre-engaged.** Part 2 starts with no stage
+      selected — the teacher clicks to engage one. Reading target starts at
+      Instructional (Independent needs a stage *or* a reading level).
+- [x] **Activities are multi-select with a suggestion, not locked to one.** Part 3
+      uses checkboxes: stack as many as the student needs; the hint suggests one per
+      text. All unchecked = just the reading text. Selected writing scaffolds union
+      together (A/B/C/D) so the prompt emits exactly the chosen ones.
 - [ ] _(add more as you find them)_
 
 > **Deploy note:** for the prototype, use `vercel deploy --prod --force` — a plain
