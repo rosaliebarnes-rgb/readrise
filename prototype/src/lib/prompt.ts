@@ -2,7 +2,7 @@
    Server-only in practice (imported by the API route) — keeps the constitution
    out of the browser bundle. */
 
-import { AXES, LENGTHS, STAGES, type Stage } from "./domain";
+import { AXES, LENGTHS, STAGES, ccssLabel, type Stage } from "./domain";
 import type { GenConfig, PlannedText, SetConfig, StudentProfile } from "./types";
 
 export function resolveStage(profile: StudentProfile): Stage | null {
@@ -104,8 +104,8 @@ Words too advanced to decode (hydraulic, generation, inspection) must NOT appear
 ITALICS / WORD BANK: mark on-level practice words with SINGLE asterisks only (*word*). NEVER use double asterisks (**bold**) anywhere. NEVER mark a whole line or phrase — only individual practice words. NEVER mark the hardest words in the text.`;
 }
 
-function comprehensionLogic(cfg: GenConfig): string {
-  const g = (cfg.goal || "").toLowerCase();
+function comprehensionLogic(goalText: string): string {
+  const g = (goalText || "").toLowerCase();
   const has = (s: string) => g.includes(s);
   if (has("vocabulary") || has("figurative") || has("word meaning") || has("meaning of") || has("context clue"))
     return `Write word-in-context questions in this exact frame: "The text uses the word [word] in this line: [quote the line]. Based on how it is used here, what do you think it means?"`;
@@ -220,7 +220,7 @@ Put a title on the first line, then the passage in normal paragraphs separated b
   if (outputs.comprehension) {
     sections.push("===COMPREHENSION===");
     fmt.push(`===COMPREHENSION===
-${comprehensionLogic(cfg)} Number each question. 3 to 5 questions. No answer lines.${
+${comprehensionLogic(cfg.goal)} Number each question. 3 to 5 questions. No answer lines.${
       cfg.readingTarget === "Independent"
         ? " DECODABILITY: the QUESTIONS must be decodable at the same level as the text — a student who cannot read the question cannot answer it. BUT: keeping the questions readable does NOT mean making them trivial. NO yes/no questions. NO questions answerable by guessing. Every question must require the student to go back into the text and find something. Simple words, real thinking."
         : ""
@@ -274,6 +274,10 @@ Your FIRST characters must be "===TEXT===". Do NOT write anything before it — 
    Stage 1 plans the set (angles + the shared vocabulary spine); the teacher
    reviews it; stage 2 writes each text. No student profile is involved.
 --------------------------------------------------------------------------- */
+
+function setGoal(cfg: SetConfig): string {
+  return cfg.goalMode === "standard" ? ccssLabel(cfg.ccss) : (cfg.skillChips || []).join(", ");
+}
 
 export function buildSetPlanPrompt(cfg: SetConfig): string {
   const axis = AXES.find((a) => a.id === cfg.axis) || AXES[0];
@@ -336,7 +340,8 @@ export function buildSetTextPrompt(
 - THIS TEXT'S ANGLE (varies on ${axis.label}): ${t.title} — ${t.angle}
 - READING LEVEL for this text: ${t.level.trim() || "(not set)"}
 - Mode: ${cfg.mode}
-- Length: about ${lengthObj.target} words (${lengthObj.words}).`);
+- Length: about ${lengthObj.target} words (${lengthObj.words}).${setGoal(cfg) ? `
+- LEARNING GOAL for the set: ${setGoal(cfg)}` : ""}`);
 
   p.push(`SHARED VOCABULARY — use EVERY one of these words naturally in this text: ${vocab.join(", ")}.
 The same words appear in every text in the set. That is deliberate: repeated encounters at different levels are how the words stick. Italicize each one with *single asterisks* where it appears. Do NOT swap them for synonyms.`);
@@ -360,7 +365,7 @@ Put the title on the first line, then the passage in paragraphs separated by a b
   if (cfg.comprehension) {
     sections.push("===COMPREHENSION===");
     fmt.push(`===COMPREHENSION===
-3 to 4 comprehension questions answerable from THIS text, readable at this text's level. No yes/no questions — every question sends the student back into the text. Number each. No answer lines.`);
+${comprehensionLogic(setGoal(cfg))} 3 to 4 questions, answerable from THIS text and readable at this text's level. No yes/no questions — every question sends the student back into the text. Number each. No answer lines.`);
   }
   p.push(fmt.join("\n\n"));
   p.push(`Sections to include, in this order: ${sections.join(" ")}`);

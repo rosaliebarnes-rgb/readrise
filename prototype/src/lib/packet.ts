@@ -176,6 +176,7 @@ export function packHtml(
   vocab: string[],
   items: { n: number; level: string; parsed: ParsedSections }[],
   origin: string,
+  opts?: { vocabDefs?: boolean; summary?: boolean },
 ): string {
   let body = `<h1>${esc(anchor || "Reading set")}</h1>
 <p class="meta">${items.length} texts${vocab.length ? ` · shared vocabulary: ${esc(vocab.join(", "))}` : ""}</p>`;
@@ -189,6 +190,15 @@ export function packHtml(
       body += `<p class="read">${esc(plain(p)).replace(/\n/g, "<br>")}</p>`;
     });
     body += questionsHtml(it.parsed.comprehension, "Comprehension");
+    if (opts?.vocabDefs && vocab.length) {
+      body += `<h3>Vocabulary</h3><p style="font-style:italic;color:#555;margin:0 0 6px;">What does each word mean in this text?</p>`;
+      vocab.forEach((w) => {
+        body += `<div style="display:flex;align-items:baseline;gap:10px;margin:8px 0;"><b style="min-width:8.5em;">${esc(w)}</b><span style="flex:1;border-bottom:1px solid #9a9a9a;height:1.4em;"></span></div>`;
+      });
+    }
+    if (opts?.summary) {
+      body += `<h3>Summary</h3><p style="margin:0 0 4px;">Write a summary of this text in your own words.</p>${RULE}${RULE}${RULE}${RULE}`;
+    }
     body += `</section>`;
   });
 

@@ -51,7 +51,16 @@ export interface SetConfig {
   levels: string[]; // one reading level per text, in order
   mode: string;
   length: string;
-  comprehension: boolean; // include questions with each text
+  /* Align to a goal — Skill or Standard only. No IEP goal on sets: a set serves a
+     group, and keeping it out means the set tab collects nothing about a student. */
+  goalMode: "skill" | "standard";
+  skillChips: string[];
+  ccss: string;
+  /* Per-text options. The teacher composes the group work from these — the tool
+     doesn't prescribe a group routine. */
+  comprehension: boolean;
+  summary: boolean; // a summary task on each text
+  vocabDefs: boolean; // define the shared words as used in THIS text
 }
 
 export interface PlannedText {

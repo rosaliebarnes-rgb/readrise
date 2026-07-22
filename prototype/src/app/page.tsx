@@ -103,7 +103,12 @@ export default function Home() {
     levels: ["", "", "", "", ""],
     mode: "Nonfiction",
     length: "Short",
+    goalMode: "skill",
+    skillChips: [],
+    ccss: "",
     comprehension: true,
+    summary: false,
+    vocabDefs: false,
   });
   const [setPlan, setSetPlan] = useState<SetPlan | null>(null);
   const [setResults, setSetResults] = useState<SetTextResult[]>([]);
@@ -651,6 +656,7 @@ export default function Home() {
                   onPlanChange={setSetPlan}
                   results={setResults}
                   anchor={setCfg.anchor}
+                  cfg={setCfg}
                   busy={csBusy}
                   progress={setProgress}
                   onWrite={writeSet}

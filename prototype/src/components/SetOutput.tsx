@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { splitTitle } from "@/lib/parse";
-import { packHtml, packetHtml, packetText } from "@/lib/packet";
+import { packHtml, packetText } from "@/lib/packet";
 import { readingStyle, type ReaderSettings } from "@/lib/reader";
-import type { SetPlan, SetTextResult } from "@/lib/types";
-import { Paragraph, Questions } from "./TextRender";
+import type { SetConfig, SetPlan, SetTextResult } from "@/lib/types";
+import { Paragraph, Questions, Rule, SectionLabel } from "./TextRender";
 import ReaderControls from "./ReaderControls";
 
 function VocabSpine({ vocab }: { vocab: string[] }) {
@@ -97,17 +97,53 @@ function PlanReview({
   );
 }
 
+/* Student-completed scaffolds — renderer-enforced blanks, no model call. */
+function VocabDefs({ vocab }: { vocab: string[] }) {
+  if (!vocab.length) return null;
+  return (
+    <>
+      <SectionLabel>Vocabulary</SectionLabel>
+      <p className="mb-3 text-[13px] leading-snug text-ink-soft italic">
+        What does each word mean in this text?
+      </p>
+      <div className="space-y-3">
+        {vocab.map((w) => (
+          <div key={w} className="flex items-baseline gap-3">
+            <span className="layer-academic w-32 flex-none text-[14px]">{w}</span>
+            <span className="h-6 flex-1 border-b border-black/25" />
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function SummaryTask() {
+  return (
+    <>
+      <SectionLabel>Summary</SectionLabel>
+      <p className="mb-1 text-[15px]">Write a summary of this text in your own words.</p>
+      <Rule />
+      <Rule />
+      <Rule />
+      <Rule />
+    </>
+  );
+}
+
 /* Stage 2 output: the finished pack. */
 function Pack({
   plan,
   results,
   anchor,
+  cfg,
   reader,
   onReaderChange,
 }: {
   plan: SetPlan;
   results: SetTextResult[];
   anchor: string;
+  cfg: SetConfig;
   reader: ReaderSettings;
   onReaderChange: (s: ReaderSettings) => void;
 }) {
@@ -133,7 +169,7 @@ function Pack({
       return;
     }
     w.document.open();
-    w.document.write(packHtml(anchor, plan.vocab, results, window.location.origin));
+    w.document.write(packHtml(anchor, plan.vocab, results, window.location.origin, cfg));
     w.document.close();
     w.focus();
     window.setTimeout(() => w.print(), 400);
@@ -146,7 +182,7 @@ function Pack({
       return;
     }
     w.document.open();
-    w.document.write(packetHtml(cur.parsed, window.location.origin));
+    w.document.write(packHtml(anchor, plan.vocab, [cur], window.location.origin, cfg));
     w.document.close();
     w.focus();
     window.setTimeout(() => w.print(), 350);
@@ -208,6 +244,8 @@ function Pack({
       </div>
 
       {cur.parsed.comprehension && <Questions block={cur.parsed.comprehension} label="Comprehension" />}
+      {cfg.vocabDefs && <VocabDefs vocab={plan.vocab} />}
+      {cfg.summary && <SummaryTask />}
     </div>
   );
 }
@@ -217,6 +255,7 @@ export default function SetOutput({
   onPlanChange,
   results,
   anchor,
+  cfg,
   busy,
   progress,
   onWrite,
@@ -227,6 +266,7 @@ export default function SetOutput({
   onPlanChange: (p: SetPlan) => void;
   results: SetTextResult[];
   anchor: string;
+  cfg: SetConfig;
   busy: boolean;
   progress: string;
   onWrite: () => void;
@@ -235,7 +275,7 @@ export default function SetOutput({
 }) {
   if (results.length) {
     return (
-      <Pack plan={plan} results={results} anchor={anchor} reader={reader} onReaderChange={onReaderChange} />
+      <Pack plan={plan} results={results} anchor={anchor} cfg={cfg} reader={reader} onReaderChange={onReaderChange} />
     );
   }
   return (
