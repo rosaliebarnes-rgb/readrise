@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { splitTitle } from "@/lib/parse";
-import { packetHtml, packetText } from "@/lib/packet";
+import { packHtml, packetHtml, packetText } from "@/lib/packet";
 import { readingStyle, type ReaderSettings } from "@/lib/reader";
 import type { SetPlan, SetTextResult } from "@/lib/types";
 import { Paragraph, Questions } from "./TextRender";
@@ -101,11 +101,13 @@ function PlanReview({
 function Pack({
   plan,
   results,
+  anchor,
   reader,
   onReaderChange,
 }: {
   plan: SetPlan;
   results: SetTextResult[];
+  anchor: string;
   reader: ReaderSettings;
   onReaderChange: (s: ReaderSettings) => void;
 }) {
@@ -124,6 +126,19 @@ function Pack({
       setCopied(false);
     }
   }
+  function printPack() {
+    const w = window.open("", "_blank", "width=880,height=1000");
+    if (!w) {
+      window.print();
+      return;
+    }
+    w.document.open();
+    w.document.write(packHtml(anchor, plan.vocab, results, window.location.origin));
+    w.document.close();
+    w.focus();
+    window.setTimeout(() => w.print(), 400);
+  }
+
   function printOne() {
     const w = window.open("", "_blank", "width=820,height=1000");
     if (!w) {
@@ -154,7 +169,14 @@ function Pack({
             onClick={printOne}
             className="rounded-lg border border-pine px-3.5 py-2 text-[13px] font-medium text-pine hover:bg-pine-soft"
           >
-            Print / Save as PDF
+            Print this text
+          </button>
+          <button
+            type="button"
+            onClick={printPack}
+            className="rounded-lg bg-pine px-3.5 py-2 text-[13px] font-medium text-white hover:brightness-110"
+          >
+            Print whole pack
           </button>
         </div>
       </div>
@@ -194,6 +216,7 @@ export default function SetOutput({
   plan,
   onPlanChange,
   results,
+  anchor,
   busy,
   progress,
   onWrite,
@@ -203,6 +226,7 @@ export default function SetOutput({
   plan: SetPlan;
   onPlanChange: (p: SetPlan) => void;
   results: SetTextResult[];
+  anchor: string;
   busy: boolean;
   progress: string;
   onWrite: () => void;
@@ -210,7 +234,9 @@ export default function SetOutput({
   onReaderChange: (s: ReaderSettings) => void;
 }) {
   if (results.length) {
-    return <Pack plan={plan} results={results} reader={reader} onReaderChange={onReaderChange} />;
+    return (
+      <Pack plan={plan} results={results} anchor={anchor} reader={reader} onReaderChange={onReaderChange} />
+    );
   }
   return (
     <>

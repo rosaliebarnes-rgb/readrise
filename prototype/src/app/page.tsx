@@ -650,6 +650,7 @@ export default function Home() {
                   plan={setPlan}
                   onPlanChange={setSetPlan}
                   results={setResults}
+                  anchor={setCfg.anchor}
                   busy={csBusy}
                   progress={setProgress}
                   onWrite={writeSet}

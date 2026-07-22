@@ -169,3 +169,44 @@ ol,li{font-size:12pt;}
 li{margin:0 0 3px;}
 </style></head><body>${body}</body></html>`;
 }
+
+/* ---- the whole class-set pack as one printable document ---- */
+export function packHtml(
+  anchor: string,
+  vocab: string[],
+  items: { n: number; level: string; parsed: ParsedSections }[],
+  origin: string,
+): string {
+  let body = `<h1>${esc(anchor || "Reading set")}</h1>
+<p class="meta">${items.length} texts${vocab.length ? ` · shared vocabulary: ${esc(vocab.join(", "))}` : ""}</p>`;
+
+  items.forEach((it, i) => {
+    const { title, paras } = splitTitle(it.parsed.text);
+    body += `<section class="${i ? "brk" : ""}">`;
+    body += `<p class="lvl">Text ${it.n}${it.level ? ` · ${esc(it.level)}` : ""}</p>`;
+    body += `<h2>${esc(title || `Text ${it.n}`)}</h2>`;
+    paras.forEach((p) => {
+      body += `<p class="read">${esc(plain(p)).replace(/\n/g, "<br>")}</p>`;
+    });
+    body += questionsHtml(it.parsed.comprehension, "Comprehension");
+    body += `</section>`;
+  });
+
+  return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(anchor || "Reading set")}</title>
+<style>
+@font-face{font-family:"Lexend";font-weight:400;src:url("${origin}/fonts/lexend-400.woff2") format("woff2");}
+@font-face{font-family:"Lexend";font-weight:600;src:url("${origin}/fonts/lexend-600.woff2") format("woff2");}
+@page{margin:1.8cm;}
+*{box-sizing:border-box;}
+body{font-family:"Lexend",Arial,sans-serif;color:#111;line-height:1.6;letter-spacing:.01em;margin:0;max-width:40rem;}
+h1{font-size:22pt;margin:0 0 4px;}
+h2{font-size:17pt;margin:2px 0 12px;}
+p.meta{font-size:10.5pt;color:#555;margin:0 0 22px;}
+p.lvl{font-size:10pt;color:#1f5c46;letter-spacing:.05em;text-transform:uppercase;margin:0 0 2px;}
+h3{font-size:11pt;text-transform:uppercase;letter-spacing:.05em;color:#1f5c46;border-bottom:1px solid #ccc;padding-bottom:3px;margin:22px 0 8px;break-after:avoid;}
+p.read{font-size:13pt;max-width:44ch;margin:0 0 10px;}
+ol,li{font-size:12pt;}
+li{margin:0 0 3px;}
+section.brk{break-before:page;}
+</style></head><body>${body}</body></html>`;
+}
