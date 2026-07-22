@@ -1,16 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AXES, BROAD_THEME, CCSS, LENGTHS, MODES, SKILLS } from "@/lib/domain";
 import type { SetConfig } from "@/lib/types";
 
 const inputCls =
   "w-full rounded-lg border border-hair bg-white px-3 py-2 text-[14px] text-ink placeholder:text-ink-soft/60 focus:border-pine";
+const missingCls = "border-ochre ring-2 ring-ochre/30";
 
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+function Field({
+  label,
+  hint,
+  required,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  required?: boolean;
+  children: React.ReactNode;
+}) {
   return (
     <div className="mt-4">
-      <span className="mb-1.5 block text-[12px] font-medium tracking-wide text-pine">{label}</span>
+      <span className="mb-1.5 flex items-center gap-2 text-[12px] font-medium tracking-wide text-pine">
+        {label}
+        {required && (
+          <span className="rounded-full bg-ochre/15 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-ochre uppercase">
+            Required
+          </span>
+        )}
+      </span>
       {children}
       {hint && <span className="mt-1 block text-[11.5px] leading-snug text-ink-soft">{hint}</span>}
     </div>
@@ -30,10 +48,15 @@ export default function SetPanel({
 }) {
   const [lo, setLo] = useState("");
   const [hi, setHi] = useState("");
+  const [attempted, setAttempted] = useState(false);
+  const anchorRef = useRef<HTMLInputElement>(null);
+  const levelsRef = useRef<HTMLDivElement>(null);
+
   const axis = AXES.find((a) => a.id === cfg.axis) || AXES[0];
   const broad = BROAD_THEME.test(cfg.anchor.trim());
   const n = cfg.levels.length;
-  const levelsReady = cfg.levels.every((l) => l.trim().length > 0);
+  const missingLevels = cfg.levels.filter((l) => !l.trim()).length;
+  const needsAnchor = !cfg.anchor.trim();
 
   function setCount(next: number) {
     onChange({ levels: Array.from({ length: next }, (_, i) => cfg.levels[i] ?? "") });
@@ -43,20 +66,40 @@ export default function SetPanel({
     levels[i] = v;
     onChange({ levels });
   }
-  /* Optional shortcut: interpolate evenly between two endpoints. Numeric levels
-     (Lexile / grade) interpolate; anything else just fills first and last. */
-  function spread() {
-    if (!lo.trim() || !hi.trim()) return;
-    const nLo = parseFloat(lo.replace(/[^\d.]/g, ""));
-    const nHi = parseFloat(hi.replace(/[^\d.]/g, ""));
-    const suffix = /L\s*$/i.test(lo) || /L\s*$/i.test(hi) ? "L" : "";
+
+  /* Interpolate evenly between two endpoints. Numeric levels (Lexile / grade)
+     interpolate; anything else just fills first and last. */
+  function spread(loV = lo, hiV = hi) {
+    if (!loV.trim() || !hiV.trim()) return;
+    const nLo = parseFloat(loV.replace(/[^\d.]/g, ""));
+    const nHi = parseFloat(hiV.replace(/[^\d.]/g, ""));
+    const suffix = /L\s*$/i.test(loV) || /L\s*$/i.test(hiV) ? "L" : "";
     const levels = Array.from({ length: n }, (_, i) => {
       if (!isNaN(nLo) && !isNaN(nHi) && n > 1) {
         return `${Math.round(nLo + ((nHi - nLo) * i) / (n - 1))}${suffix}`;
       }
-      return i === 0 ? lo : i === n - 1 ? hi : cfg.levels[i] ?? "";
+      return i === 0 ? loV : i === n - 1 ? hiV : cfg.levels[i] ?? "";
     });
     onChange({ levels });
+  }
+
+  /* Button stays enabled — clicking with gaps takes you to the problem instead
+     of silently doing nothing. */
+  function attemptPlan() {
+    if (needsAnchor) {
+      setAttempted(true);
+      anchorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      anchorRef.current?.focus();
+      return;
+    }
+    if (missingLevels) {
+      setAttempted(true);
+      levelsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      levelsRef.current?.querySelector<HTMLInputElement>("input[data-empty='1']")?.focus();
+      return;
+    }
+    setAttempted(false);
+    onPlan();
   }
 
   return (
@@ -68,6 +111,7 @@ export default function SetPanel({
 
       <Field
         label="Anchor topic"
+        required
         hint={
           broad
             ? "That reads like a broad theme. Tight topics build vocabulary better — the words repeat because the content repeats."
@@ -75,7 +119,8 @@ export default function SetPanel({
         }
       >
         <input
-          className={inputCls}
+          ref={anchorRef}
+          className={`${inputCls} ${attempted && needsAnchor ? missingCls : ""}`}
           placeholder="e.g. lowriders in East L.A., the Great Migration, coral reefs"
           value={cfg.anchor}
           onChange={(e) => onChange({ anchor: e.target.value })}
@@ -123,31 +168,54 @@ export default function SetPanel({
         </div>
       </Field>
 
-      <Field
-        label="Level for each text — required"
-        hint="Lexile, grade equivalent, or however you record levels. Nothing is inferred — the spread across levels is the whole point of a set."
-      >
-        <p className="mb-1.5 text-[11.5px] text-ink-soft">
-          Quickest way: type your lowest and highest, then Spread to fill the rest.
+      <Field label="Reading level for each text" required>
+        <p className="mb-2 text-[11.5px] leading-snug text-ink-soft">
+          Every text needs a level — the spread across levels is what makes it a set. Without them,
+          every text lands at the same level.
         </p>
-        <div className="mb-2 flex gap-1.5">
-          <input className={inputCls} placeholder="lowest e.g. 300L" value={lo} onChange={(e) => setLo(e.target.value)} />
-          <input className={inputCls} placeholder="highest e.g. 900L" value={hi} onChange={(e) => setHi(e.target.value)} />
-          <button
-            type="button"
-            onClick={spread}
-            className="flex-none rounded-lg border border-pine px-3 text-[12.5px] font-medium text-pine hover:bg-pine-soft"
-          >
-            Spread
-          </button>
-        </div>
-        <div className="space-y-1.5">
-          {cfg.levels.map((lv, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <span className="w-12 flex-none text-[11.5px] text-ink-soft">Text {i + 1}</span>
-              <input className={inputCls} placeholder="level" value={lv} onChange={(e) => setLevel(i, e.target.value)} />
-            </div>
-          ))}
+
+        <div ref={levelsRef}>
+          <div className="mb-1 flex gap-1.5">
+            <input
+              className={inputCls}
+              placeholder="lowest e.g. 300L"
+              value={lo}
+              onChange={(e) => setLo(e.target.value)}
+              onBlur={() => spread()}
+            />
+            <input
+              className={inputCls}
+              placeholder="highest e.g. 900L"
+              value={hi}
+              onChange={(e) => setHi(e.target.value)}
+              onBlur={() => spread()}
+            />
+            <button
+              type="button"
+              onClick={() => spread()}
+              className="flex-none rounded-lg border border-pine px-3 text-[12.5px] font-medium text-pine hover:bg-pine-soft"
+            >
+              Fill
+            </button>
+          </div>
+          <p className="mb-2.5 text-[11.5px] text-ink-soft">
+            Type your lowest and highest — the rest fill in automatically. Edit any of them below.
+          </p>
+
+          <div className="space-y-1.5">
+            {cfg.levels.map((lv, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <span className="w-12 flex-none text-[11.5px] text-ink-soft">Text {i + 1}</span>
+                <input
+                  data-empty={lv.trim() ? "0" : "1"}
+                  className={`${inputCls} ${attempted && !lv.trim() ? missingCls : ""}`}
+                  placeholder="level"
+                  value={lv}
+                  onChange={(e) => setLevel(i, e.target.value)}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </Field>
 
@@ -266,19 +334,24 @@ export default function SetPanel({
 
       <button
         type="button"
-        onClick={onPlan}
-        disabled={busy || !cfg.anchor.trim() || !levelsReady}
+        onClick={attemptPlan}
+        disabled={busy}
         className="mt-6 w-full rounded-lg bg-pine py-3 text-[15px] font-semibold text-white shadow-sm hover:brightness-110 disabled:opacity-60"
       >
         {busy ? "Planning…" : "Plan the set"}
       </button>
-      <p className="mt-1.5 text-[11.5px] text-ink-soft">
-        {!cfg.anchor.trim()
-          ? "Add an anchor topic to start."
-          : !levelsReady
-            ? `Set a level for all ${n} texts first — without them every text lands at the same level, which defeats the set.`
-            : "You review the plan before any text is written."}
-      </p>
+
+      {attempted && (needsAnchor || missingLevels > 0) ? (
+        <p className="mt-2 rounded-lg bg-ochre/15 px-3 py-2 text-[12px] leading-snug text-ochre">
+          {needsAnchor
+            ? "Add an anchor topic — it's what every text in the set is about."
+            : `${missingLevels} of ${n} texts still ${missingLevels === 1 ? "needs a" : "need a"} reading level. They're highlighted above.`}
+        </p>
+      ) : (
+        <p className="mt-1.5 text-[11.5px] text-ink-soft">
+          You review the plan before any text is written.
+        </p>
+      )}
     </div>
   );
 }
