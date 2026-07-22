@@ -341,8 +341,12 @@ export function buildSetTextPrompt(
   p.push(`SHARED VOCABULARY — use EVERY one of these words naturally in this text: ${vocab.join(", ")}.
 The same words appear in every text in the set. That is deliberate: repeated encounters at different levels are how the words stick. Italicize each one with *single asterisks* where it appears. Do NOT swap them for synonyms.`);
 
-  p.push(`HITTING THE LEVEL
+  const lo = (cfg.levels[0] || "").trim();
+  const hi = (cfg.levels[cfg.levels.length - 1] || "").trim();
+
+  p.push(`HITTING THE LEVEL — THIS IS WHAT MAKES IT A SET
 - Write so a student reading at "${t.level.trim() || "this level"}" can read it. Lower levels: short sentences, high-frequency short words. Higher levels: more complex syntax and precision.
+- This text sits at "${t.level.trim() || "(not set)"}" inside a set that spans ${lo || "?"} to ${hi || "?"}. The texts MUST be noticeably different in reading difficulty from each other — if this is one of the lower texts, it should read markedly simpler than the top of the range; if it is one of the higher texts, markedly richer. A set where every text reads the same has failed.
 - Decodability here is ESTIMATED from a reading level, not verified against phonics patterns.
 - A LOW-LEVEL TEXT MUST NOT GO THIN. Reduce linguistic complexity ONLY — never conceptual depth, cultural specificity, or truth. A simpler text is still about real named people, real places, real years. If prose goes flat at a low level, switch to FREE VERSE before you simplify the subject.
 - Wrap real proper nouns (names of real people and real places) in {{double curly braces}}.`);

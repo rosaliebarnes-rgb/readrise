@@ -29,8 +29,11 @@ export async function POST(req: Request) {
   if (!cfg?.anchor?.trim()) {
     return NextResponse.json({ error: "Give the set an anchor topic first." }, { status: 400 });
   }
-  if (!cfg.levels?.length) {
-    return NextResponse.json({ error: "Set a level for each text." }, { status: 400 });
+  if (!cfg.levels?.length || cfg.levels.some((l) => !l.trim())) {
+    return NextResponse.json(
+      { error: "Set a reading level for every text — without them every text lands at the same level." },
+      { status: 400 },
+    );
   }
 
   const model = body.model && ALLOWED_MODELS.has(body.model) ? body.model : MODEL;

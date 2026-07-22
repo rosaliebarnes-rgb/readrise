@@ -63,6 +63,12 @@ Production `readrise` (the single-file `index.html` app) is untouched until cuto
       uses checkboxes: stack as many as the student needs; the hint suggests one per
       text. All unchecked = just the reading text. Selected writing scaffolds union
       together (A/B/C/D) so the prompt emits exactly the chosen ones.
+- [x] **Class-set levels are required and actually differentiate.** They defaulted
+      to blank, so every text landed at the same level (the spread is the whole
+      point). Plan is now disabled until every text has a level, with a server-side
+      guard as backup, and each text is told where it sits in the range so it
+      calibrates against the others. Verified: 300L came out at 5.1 words/sentence
+      vs 900L at 16.4.
 - [ ] _(add more as you find them)_
 
 > **Deploy note:** for the prototype, use `vercel deploy --prod --force` — a plain

@@ -33,6 +33,7 @@ export default function SetPanel({
   const axis = AXES.find((a) => a.id === cfg.axis) || AXES[0];
   const broad = BROAD_THEME.test(cfg.anchor.trim());
   const n = cfg.levels.length;
+  const levelsReady = cfg.levels.every((l) => l.trim().length > 0);
 
   function setCount(next: number) {
     onChange({ levels: Array.from({ length: next }, (_, i) => cfg.levels[i] ?? "") });
@@ -122,14 +123,20 @@ export default function SetPanel({
         </div>
       </Field>
 
-      <Field label="Level for each text" hint="Lexile, grade equivalent, or however you record levels. Nothing is inferred.">
+      <Field
+        label="Level for each text — required"
+        hint="Lexile, grade equivalent, or however you record levels. Nothing is inferred — the spread across levels is the whole point of a set."
+      >
+        <p className="mb-1.5 text-[11.5px] text-ink-soft">
+          Quickest way: type your lowest and highest, then Spread to fill the rest.
+        </p>
         <div className="mb-2 flex gap-1.5">
-          <input className={inputCls} placeholder="lowest" value={lo} onChange={(e) => setLo(e.target.value)} />
-          <input className={inputCls} placeholder="highest" value={hi} onChange={(e) => setHi(e.target.value)} />
+          <input className={inputCls} placeholder="lowest e.g. 300L" value={lo} onChange={(e) => setLo(e.target.value)} />
+          <input className={inputCls} placeholder="highest e.g. 900L" value={hi} onChange={(e) => setHi(e.target.value)} />
           <button
             type="button"
             onClick={spread}
-            className="flex-none rounded-lg border border-hair px-3 text-[12.5px] text-ink-soft hover:bg-pine-soft/40"
+            className="flex-none rounded-lg border border-pine px-3 text-[12.5px] font-medium text-pine hover:bg-pine-soft"
           >
             Spread
           </button>
@@ -184,13 +191,17 @@ export default function SetPanel({
       <button
         type="button"
         onClick={onPlan}
-        disabled={busy || !cfg.anchor.trim()}
+        disabled={busy || !cfg.anchor.trim() || !levelsReady}
         className="mt-6 w-full rounded-lg bg-pine py-3 text-[15px] font-semibold text-white shadow-sm hover:brightness-110 disabled:opacity-60"
       >
         {busy ? "Planning…" : "Plan the set"}
       </button>
       <p className="mt-1.5 text-[11.5px] text-ink-soft">
-        You review the plan before any text is written.
+        {!cfg.anchor.trim()
+          ? "Add an anchor topic to start."
+          : !levelsReady
+            ? `Set a level for all ${n} texts first — without them every text lands at the same level, which defeats the set.`
+            : "You review the plan before any text is written."}
       </p>
     </div>
   );
