@@ -100,6 +100,9 @@ export default function Home() {
   const [describeLevel, setDescribeLevel] = useState("");
   const [describeTarget, setDescribeTarget] = useState<Target>("Instructional");
   const [refineText, setRefineText] = useState("");
+  // Guided keeps the free-text note as a tucked-away escape hatch (topic refusals,
+  // framing) so the stepped flow stays clean; Describe mode is free-text by default.
+  const [showNotes, setShowNotes] = useState(false);
 
   const [reader, setReader] = useState<ReaderSettings>(READER_DEFAULT);
   const [busy, setBusy] = useState(false);
@@ -365,16 +368,16 @@ export default function Home() {
             />
           ) : (
             <>
-              <div className="mb-4 flex gap-1.5">
+              <div className="mb-4 inline-flex rounded-lg border border-hair bg-hair/40 p-0.5">
                 {(["describe", "guided"] as const).map((m) => (
                   <button
                     key={m}
                     type="button"
                     onClick={() => setInputMode(m)}
-                    className={`flex-1 rounded-lg border px-3 py-2 text-[13px] font-medium transition-colors ${
+                    className={`rounded-md px-3.5 py-1.5 text-[12.5px] font-medium transition-colors ${
                       inputMode === m
-                        ? "border-pine bg-pine-soft text-pine"
-                        : "border-hair bg-white text-ink-soft hover:bg-pine-soft/40"
+                        ? "bg-white text-pine shadow-sm"
+                        : "text-ink-soft hover:text-ink"
                     }`}
                   >
                     {m === "describe" ? "Describe it" : "Guided steps"}
@@ -504,20 +507,39 @@ export default function Home() {
                         onChange={(e) => setGenre(e.target.value)}
                       />
                     </Field>
-                    <Field
-                      label="Notes for the writer — optional"
-                      hint="Anything the fields don't cover — a framing, a constraint, a topic to avoid. Type or dictate. It steers within the rules; it can't override the reading level or the constitution."
-                    >
-                      <textarea
-                        className={`${inputCls} min-h-[72px] resize-y`}
-                        placeholder="e.g. make the lead a woman; tie it to our immigration unit; this student won't read anything about sports"
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                      />
-                      <div className="mt-1.5">
-                        <DictateButton onText={(t) => setNotes((prev) => (prev ? `${prev} ${t}` : t))} />
-                      </div>
-                    </Field>
+                    {notes.trim() || showNotes ? (
+                      <Field
+                        label="Note for the writer — optional"
+                        hint="The escape hatch for anything the fields don't cover — a framing, a tie to your unit, or a topic this student won't read (honored permanently). Type or dictate. It steers within the rules; it can't override the reading level or the constitution."
+                      >
+                        <textarea
+                          className={`${inputCls} min-h-[72px] resize-y`}
+                          placeholder="e.g. make the lead a woman; tie it to our immigration unit; this student won't read anything about sports"
+                          value={notes}
+                          onChange={(e) => setNotes(e.target.value)}
+                        />
+                        <div className="mt-1.5 flex items-center justify-between">
+                          <DictateButton onText={(t) => setNotes((prev) => (prev ? `${prev} ${t}` : t))} />
+                          {!notes.trim() && (
+                            <button
+                              type="button"
+                              onClick={() => setShowNotes(false)}
+                              className="text-[12px] text-ink-soft hover:text-ink"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                      </Field>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setShowNotes(true)}
+                        className="mt-4 flex items-center gap-1.5 text-[12.5px] font-medium text-pine hover:underline"
+                      >
+                        <span className="text-[15px] leading-none">+</span> Add a note for the writer
+                      </button>
+                    )}
                     <Field label="Length">
                       <div className="flex flex-wrap gap-1.5">
                         {LENGTHS.map((l) => (
