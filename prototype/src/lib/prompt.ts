@@ -380,3 +380,72 @@ Your FIRST characters must be "===TEXT===". No planning, no reasoning, no preamb
 
   return p.join("\n\n");
 }
+
+/* ---------------------------------------------------------------------------
+   DESCRIBE MODE — the teacher describes what they need in their own words
+   (typed or dictated) instead of filling the stepped form. Reading level stays
+   exact (it can't be fuzzed); everything else is pulled from the description.
+--------------------------------------------------------------------------- */
+export function buildDescribePrompt(
+  desc: string,
+  level: string,
+  target: "Independent" | "Instructional",
+): string {
+  const profile: StudentProfile = {
+    name: "",
+    age: "",
+    culture: "",
+    interests: "",
+    stage: "",
+    comprehension: level,
+    phonicsOn: false,
+    phonicsLevel: "",
+  };
+
+  const p: string[] = [];
+  p.push(
+    `You are generating an intervention reading text for ReadRise, a literacy tool for special education and intervention teachers working with striving adolescent readers. The teacher has described what they want in their OWN WORDS — read it closely and produce exactly that, at the reading level given, honoring every rule below.`,
+  );
+  p.push(CONSTITUTION);
+  p.push(`WHAT THE TEACHER ASKED FOR — their own words. This is the spec. Pull the topic, the framing, any student context (culture, interests, age), and any comprehension goal from it:
+"${desc.trim()}"`);
+  p.push(`READING LEVEL: ${level.trim() || "(none given)"}
+READING TARGET: ${target}`);
+
+  if (target === "Independent") {
+    p.push(independentRules(profile));
+  } else {
+    p.push(
+      `INSTRUCTIONAL LEVEL: this text will be read WITH teacher support. Stretch vocabulary and longer sentences are allowed; the student is not expected to decode every word unaided. Still match the reading level given as closely as you can.`,
+    );
+  }
+
+  p.push(`HONORING THE DESCRIPTION — it is the teacher's intent, but it operates INSIDE the rules, never over them: the constitution, the reading level, and factual truth always win. If the description asks for something the rules forbid (a tragic frame, invented details about a real person, oral dialect, words above the reading level), keep the rule and do the closest thing the description intends that the rules still allow. If it says a student refuses or dislikes a topic, avoid that topic completely and permanently — do not mention the refusal in the text.`);
+  p.push(`PROPER NOUNS: wrap each real proper noun (real names of real people and real places) in {{double curly braces}}.`);
+  p.push(`VOCABULARY: surface a small number of Academic Word List words that fit the topic. Italicize each with *single asterisks*.`);
+
+  const sections = ["===TEXT===", "===COMPREHENSION==="];
+  const fmt = [
+    `OUTPUT FORMAT — return ONLY the sections below, each under its exact marker. No preamble, no closing remarks.`,
+    `===TEXT===
+Title on the first line, then the passage in paragraphs separated by a blank line. Italicize practice words with *asterisks*; wrap proper nouns in {{curly braces}}.`,
+    `===COMPREHENSION===
+3 to 5 comprehension questions answerable from the text and readable at this level. If the description names a comprehension focus (main idea, finding evidence, vocabulary, inference…), match it. No yes/no questions — every question sends the student back into the text. Number each. No answer lines.`,
+  ];
+  if (target === "Independent") {
+    sections.push("===TEACHERNOTE===");
+    fmt.push(`===TEACHERNOTE===
+A short note FOR THE TEACHER (never shown to the student). These lines:
+FORM: the form used (prose, free verse, letter, dialogue) and, in one sentence, why.
+FRONT-LOAD: Layer 2 words kept OUT of the text for the teacher to pre-teach verbally. If none, write "none".
+WATCH: one sentence on what to watch for as this student reads.
+VERIFY: list any real people, organizations, dates, or events named, so the teacher can fact-check. If none, write "none".
+PRECISION: no decoding stage was given, so decodability is estimated from the reading level rather than verified against phonics patterns. Recommend the free UFLI placement test for an exact stage.`);
+  }
+  p.push(fmt.join("\n\n"));
+  p.push(`Sections to include, in this order: ${sections.join(" ")}`);
+  p.push(`OUTPUT DISCIPLINE — READ LAST, OBEY ABSOLUTELY:
+Your FIRST characters must be "===TEXT===". No planning, no reasoning, no preamble. Output every listed section under its exact marker, and nothing else.`);
+
+  return p.join("\n\n");
+}

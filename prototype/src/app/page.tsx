@@ -9,6 +9,7 @@ import OutputPanel from "@/components/OutputPanel";
 import SetPanel from "@/components/SetPanel";
 import SetOutput from "@/components/SetOutput";
 import DictateButton from "@/components/DictateButton";
+import DescribePanel from "@/components/DescribePanel";
 
 type Target = "Independent" | "Instructional";
 
@@ -91,6 +92,12 @@ export default function Home() {
   const [requestedWords, setRequestedWords] = useState("");
   const [notes, setNotes] = useState("");
   const [mathSkill, setMathSkill] = useState("");
+
+  // One Student input style: the guided steps, or a single describe/dictate field.
+  const [inputMode, setInputMode] = useState<"guided" | "describe">("guided");
+  const [describeText, setDescribeText] = useState("");
+  const [describeLevel, setDescribeLevel] = useState("");
+  const [describeTarget, setDescribeTarget] = useState<Target>("Instructional");
 
   const [reader, setReader] = useState<ReaderSettings>(READER_DEFAULT);
   const [busy, setBusy] = useState(false);
@@ -178,6 +185,26 @@ export default function Home() {
     } finally {
       setCsBusy(false);
       setSetProgress("");
+    }
+  }
+
+  async function generateDescribe() {
+    setBusy(true);
+    setError(null);
+    setParsed(null);
+    try {
+      const res = await fetch("/api/describe", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ description: describeText, level: describeLevel, target: describeTarget }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || `Request failed (${res.status}).`);
+      setParsed(data.parsed as ParsedSections);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Generation failed.");
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -325,7 +352,36 @@ export default function Home() {
               busy={csBusy}
             />
           ) : (
-            <div className="divide-y divide-hair">
+            <>
+              <div className="mb-4 flex gap-1.5">
+                {(["guided", "describe"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setInputMode(m)}
+                    className={`flex-1 rounded-lg border px-3 py-2 text-[13px] font-medium transition-colors ${
+                      inputMode === m
+                        ? "border-pine bg-pine-soft text-pine"
+                        : "border-hair bg-white text-ink-soft hover:bg-pine-soft/40"
+                    }`}
+                  >
+                    {m === "guided" ? "Guided steps" : "Describe it"}
+                  </button>
+                ))}
+              </div>
+              {inputMode === "describe" ? (
+                <DescribePanel
+                  text={describeText}
+                  level={describeLevel}
+                  target={describeTarget}
+                  onText={setDescribeText}
+                  onLevel={setDescribeLevel}
+                  onTarget={setDescribeTarget}
+                  onGenerate={generateDescribe}
+                  busy={busy}
+                />
+              ) : (
+                <div className="divide-y divide-hair">
               <section>
                 <StepHead n={1} title="Who is this for" />
                 {step === 1 && (
@@ -648,7 +704,9 @@ export default function Home() {
                   </div>
                 )}
               </section>
-            </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </aside>
@@ -709,11 +767,16 @@ export default function Home() {
               {busy && <div className="mb-3 text-[13px] text-ink-soft">Updating…</div>}
               <OutputPanel
                 parsed={parsed}
-                subtitle={subtitle}
-                mathFocus={mathFocus}
+                subtitle={
+                  inputMode === "describe"
+                    ? `${describeTarget}${describeLevel ? ` · ${describeLevel}` : ""}`
+                    : subtitle
+                }
+                mathFocus={inputMode === "describe" ? undefined : mathFocus}
                 reader={reader}
                 onReaderChange={setReader}
                 onAdjust={(a) => generate(a)}
+                adjustable={inputMode !== "describe"}
                 busy={busy}
                 phonicsOn={phonicsOn}
               />

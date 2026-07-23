@@ -77,6 +77,18 @@ Production `readrise` (the single-file `index.html` app) is untouched until cuto
       constitution, reading level, and factual truth, never over them. Verified:
       "make the lead a woman + make it tragic" → female lead honored, tragedy
       refused (centered craft/pride instead). _Not yet on class sets._
+- [x] **Describe mode (prototype).** One Student now has an input-style toggle —
+      **Guided steps** vs **Describe it**. Describe it = one big type-or-dictate
+      field ("what do you need?") + the reading level (the one input that must stay
+      exact) + an Independent/Instructional toggle. New /api/describe route +
+      buildDescribePrompt: the description is the driving spec, still strictly
+      subordinate to the constitution / level / truth (reuses the Independent
+      constraint hierarchy). Result renders in the shared OutputPanel (adjust
+      buttons hidden for describe). Verified: a paragraph naming topic + student +
+      level + interest + goal + a no-violence refusal produced a 2nd-grade
+      main-idea text about the Great Migration with marching band woven in and
+      violence avoided. _Next if wanted: describe-mode 'adjust' (regenerate with a
+      tweak), and the same for class sets._
 - [ ] _(add more as you find them)_
 
 > **Deploy note:** for the prototype, use `vercel deploy --prod --force` — a plain

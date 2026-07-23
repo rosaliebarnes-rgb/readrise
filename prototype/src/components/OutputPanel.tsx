@@ -178,6 +178,7 @@ export default function OutputPanel({
   reader,
   onReaderChange,
   onAdjust,
+  adjustable = true,
   busy,
   phonicsOn,
 }: {
@@ -187,6 +188,7 @@ export default function OutputPanel({
   reader: ReaderSettings;
   onReaderChange: (s: ReaderSettings) => void;
   onAdjust: (a: "simpler" | "tighter") => void;
+  adjustable?: boolean;
   busy: boolean;
   phonicsOn: boolean;
 }) {
@@ -225,23 +227,27 @@ export default function OutputPanel({
       <div className="print-hide mb-6 flex flex-wrap items-center gap-3">
         <ReaderControls value={reader} onChange={onReaderChange} />
         <div className="ml-auto flex gap-2">
-          <button
-            type="button"
-            onClick={() => onAdjust("simpler")}
-            disabled={busy}
-            className="rounded-lg border border-hair px-3 py-2 text-[13px] text-ink-soft hover:bg-pine-soft disabled:opacity-50"
-          >
-            Simpler sentences
-          </button>
-          {phonicsOn && (
-            <button
-              type="button"
-              onClick={() => onAdjust("tighter")}
-              disabled={busy}
-              className="rounded-lg border border-hair px-3 py-2 text-[13px] text-ink-soft hover:bg-pine-soft disabled:opacity-50"
-            >
-              Tighter phonics
-            </button>
+          {adjustable && (
+            <>
+              <button
+                type="button"
+                onClick={() => onAdjust("simpler")}
+                disabled={busy}
+                className="rounded-lg border border-hair px-3 py-2 text-[13px] text-ink-soft hover:bg-pine-soft disabled:opacity-50"
+              >
+                Simpler sentences
+              </button>
+              {phonicsOn && (
+                <button
+                  type="button"
+                  onClick={() => onAdjust("tighter")}
+                  disabled={busy}
+                  className="rounded-lg border border-hair px-3 py-2 text-[13px] text-ink-soft hover:bg-pine-soft disabled:opacity-50"
+                >
+                  Tighter phonics
+                </button>
+              )}
+            </>
           )}
           <button
             type="button"
