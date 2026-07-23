@@ -93,11 +93,13 @@ export default function Home() {
   const [notes, setNotes] = useState("");
   const [mathSkill, setMathSkill] = useState("");
 
-  // One Student input style: the guided steps, or a single describe/dictate field.
-  const [inputMode, setInputMode] = useState<"guided" | "describe">("guided");
+  // One Student input style: a single describe/dictate field (the default, fastest
+  // path), or the guided steps (kept one tap away for decoding-stage precision).
+  const [inputMode, setInputMode] = useState<"guided" | "describe">("describe");
   const [describeText, setDescribeText] = useState("");
   const [describeLevel, setDescribeLevel] = useState("");
   const [describeTarget, setDescribeTarget] = useState<Target>("Instructional");
+  const [refineText, setRefineText] = useState("");
 
   const [reader, setReader] = useState<ReaderSettings>(READER_DEFAULT);
   const [busy, setBusy] = useState(false);
@@ -118,6 +120,7 @@ export default function Home() {
     comprehension: true,
     summary: false,
     vocabDefs: false,
+    notes: "",
   });
   const [setPlan, setSetPlan] = useState<SetPlan | null>(null);
   const [setResults, setSetResults] = useState<SetTextResult[]>([]);
@@ -188,19 +191,28 @@ export default function Home() {
     }
   }
 
-  async function generateDescribe() {
+  // Describe mode. A fresh gen sends just the description; a refine also sends the
+  // change + the current output, so the model keeps what works and edits the rest.
+  async function generateDescribe(refine?: string) {
+    const isRefine = !!refine?.trim() && !!parsed;
     setBusy(true);
     setError(null);
-    setParsed(null);
+    if (!isRefine) setParsed(null);
     try {
       const res = await fetch("/api/describe", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ description: describeText, level: describeLevel, target: describeTarget }),
+        body: JSON.stringify({
+          description: describeText,
+          level: describeLevel,
+          target: describeTarget,
+          ...(isRefine ? { refine, previous: parsed } : {}),
+        }),
       });
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error || `Request failed (${res.status}).`);
       setParsed(data.parsed as ParsedSections);
+      if (isRefine) setRefineText("");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Generation failed.");
     } finally {
@@ -354,7 +366,7 @@ export default function Home() {
           ) : (
             <>
               <div className="mb-4 flex gap-1.5">
-                {(["guided", "describe"] as const).map((m) => (
+                {(["describe", "guided"] as const).map((m) => (
                   <button
                     key={m}
                     type="button"
@@ -365,7 +377,7 @@ export default function Home() {
                         : "border-hair bg-white text-ink-soft hover:bg-pine-soft/40"
                     }`}
                   >
-                    {m === "guided" ? "Guided steps" : "Describe it"}
+                    {m === "describe" ? "Describe it" : "Guided steps"}
                   </button>
                 ))}
               </div>
@@ -765,6 +777,37 @@ export default function Home() {
           ) : parsed ? (
             <>
               {busy && <div className="mb-3 text-[13px] text-ink-soft">Updating…</div>}
+              {inputMode === "describe" && (
+                <div className="print-hide mb-5 rounded-xl border border-hair bg-panel p-3.5">
+                  <div className="mb-1.5 text-[12px] font-medium tracking-wide text-pine">
+                    Refine this text
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      className={`${inputCls} min-w-[200px] flex-1`}
+                      placeholder="Ask for a change — e.g. make it simpler; add an inference question; more about the drums"
+                      value={refineText}
+                      onChange={(e) => setRefineText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && refineText.trim() && !busy) generateDescribe(refineText);
+                      }}
+                    />
+                    <DictateButton onText={(t) => setRefineText((prev) => (prev ? `${prev} ${t}` : t))} />
+                    <button
+                      type="button"
+                      onClick={() => generateDescribe(refineText)}
+                      disabled={busy || !refineText.trim()}
+                      className="rounded-lg bg-pine px-4 py-2 text-[13px] font-medium text-white hover:brightness-110 disabled:opacity-50"
+                    >
+                      {busy ? "Refining…" : "Refine"}
+                    </button>
+                  </div>
+                  <p className="mt-1.5 text-[11.5px] leading-snug text-ink-soft">
+                    Keeps the text you have and applies just this change — still inside the reading level
+                    and the rules.
+                  </p>
+                </div>
+              )}
               <OutputPanel
                 parsed={parsed}
                 subtitle={

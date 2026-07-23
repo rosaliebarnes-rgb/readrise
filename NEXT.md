@@ -89,6 +89,28 @@ Production `readrise` (the single-file `index.html` app) is untouched until cuto
       main-idea text about the Great Migration with marching band woven in and
       violence avoided. _Next if wanted: describe-mode 'adjust' (regenerate with a
       tweak), and the same for class sets._
+- [x] **Describe it is now the DEFAULT input style** (leads over Guided steps).
+      Fastest path for a teacher who knows their ask, and the direction we're
+      building toward. Guided stays one tap away for the precision cases —
+      **exact decoding-stage (UFLI) targeting only lives in Guided**; Describe is
+      "estimated from a reading level." Easy to flip back if onboarding new teachers
+      ever changes the calculus (one string + the default in `page.tsx`).
+- [x] **Describe-mode refine.** After a describe result, a "Refine this text" bar
+      (type or dictate + Enter-to-submit) applies one change and keeps the rest. The
+      route carries the change + the prior output back to `buildDescribePrompt`
+      (reassembled under its section markers), so the model edits instead of
+      regenerating from scratch — still inside the reading level and the rules.
+      Verified: base Celia Cruz text → "make it simpler + add an inference question"
+      kept the text near-verbatim and swapped one literal Q for *"Why do you think
+      her music mattered so much to people? Use clues from the text."* (still 5 Qs).
+- [x] **Describe / dictate on class sets.** The set builder gains a **"Notes for the
+      writer"** field (type or dictate) that steers the whole set, plus a Dictate
+      button on the anchor. Wired into BOTH set prompts (plan + each text) as
+      strictly subordinate — the constitution, the per-text levels, and truth win; a
+      topic named off-limits stays out of *every* text. Verified: anchor "the Great
+      Migration" + note "keep it celebratory — music/churches/businesses built; no
+      lynching or race riots" planned three specific, celebratory angles (Bronzeville
+      / Humboldt Park / Conant Gardens) with no violence framing.
 - [ ] _(add more as you find them)_
 
 > **Deploy note:** for the prototype, use `vercel deploy --prod --force` — a plain

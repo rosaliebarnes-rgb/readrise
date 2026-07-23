@@ -315,6 +315,12 @@ Every text uses the SAME words. The repetition is the point: a student meets eac
 - The LOWEST-level text must NOT go thin or babyish. Same conceptual depth as the highest — simpler words, not smaller ideas. If an angle only works at a high level, pick a different angle.
 - Do not manufacture conflict, and never default to tragedy. What people built, and how, is the story.`);
 
+  if (cfg.notes.trim()) {
+    p.push(`TEACHER NOTES — extra direction for the whole set, in the teacher's own words:
+"${cfg.notes.trim()}"
+Honor these across the set wherever they fit — they capture intent the fields above cannot. They operate INSIDE the rules, never over them: the constitution, the reading levels, and factual truth always win. If a note names a topic to avoid, keep it out of EVERY text in the set.`);
+  }
+
   p.push(`OUTPUT FORMAT — output ONLY these two sections. No preamble, no closing remarks.
 ===VOCAB===
 The shared words, comma separated, on one line.
@@ -362,6 +368,12 @@ The same words appear in every text in the set. That is deliberate: repeated enc
 - A LOW-LEVEL TEXT MUST NOT GO THIN. Reduce linguistic complexity ONLY — never conceptual depth, cultural specificity, or truth. A simpler text is still about real named people, real places, real years. If prose goes flat at a low level, switch to FREE VERSE before you simplify the subject.
 - Wrap real proper nouns (names of real people and real places) in {{double curly braces}}.`);
 
+  if (cfg.notes.trim()) {
+    p.push(`TEACHER NOTES — extra direction for the whole set, in the teacher's own words:
+"${cfg.notes.trim()}"
+Honor them here wherever they fit, INSIDE the rules (the constitution, this text's reading level, and factual truth always win). A topic the notes name as off-limits stays out of this text.`);
+  }
+
   const sections = ["===TEXT==="];
   const fmt = [
     `OUTPUT FORMAT — return ONLY the sections below, each under its exact marker.`,
@@ -390,6 +402,7 @@ export function buildDescribePrompt(
   desc: string,
   level: string,
   target: "Independent" | "Instructional",
+  opts?: { refine?: string; previousText?: string },
 ): string {
   const profile: StudentProfile = {
     name: "",
@@ -423,6 +436,15 @@ READING TARGET: ${target}`);
   p.push(`HONORING THE DESCRIPTION — it is the teacher's intent, but it operates INSIDE the rules, never over them: the constitution, the reading level, and factual truth always win. If the description asks for something the rules forbid (a tragic frame, invented details about a real person, oral dialect, words above the reading level), keep the rule and do the closest thing the description intends that the rules still allow. If it says a student refuses or dislikes a topic, avoid that topic completely and permanently — do not mention the refusal in the text.`);
   p.push(`PROPER NOUNS: wrap each real proper noun (real names of real people and real places) in {{double curly braces}}.`);
   p.push(`VOCABULARY: surface a small number of Academic Word List words that fit the topic. Italicize each with *single asterisks*.`);
+
+  if (opts?.refine?.trim() && opts?.previousText?.trim()) {
+    p.push(`REFINEMENT — you already produced the result below for this teacher. Apply ONLY the change they now ask for; keep everything else that already works; re-output the FULL result under the same section markers. The change still obeys every rule above — the constitution, the reading level, and factual truth win over the request.
+
+CHANGE THE TEACHER WANTS: "${opts.refine.trim()}"
+
+WHAT YOU WROTE BEFORE:
+${opts.previousText.trim()}`);
+  }
 
   const sections = ["===TEXT===", "===COMPREHENSION==="];
   const fmt = [

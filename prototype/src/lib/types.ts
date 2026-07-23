@@ -62,6 +62,7 @@ export interface SetConfig {
   comprehension: boolean;
   summary: boolean; // a summary task on each text
   vocabDefs: boolean; // define the shared words as used in THIS text
+  notes: string; // free-text / dictated steering for the whole set (subordinate)
 }
 
 export interface PlannedText {

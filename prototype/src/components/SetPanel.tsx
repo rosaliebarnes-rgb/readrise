@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { AXES, BROAD_THEME, CCSS, LENGTHS, MODES, SKILLS } from "@/lib/domain";
 import type { SetConfig } from "@/lib/types";
+import DictateButton from "./DictateButton";
 
 const inputCls =
   "w-full rounded-lg border border-hair bg-white px-3 py-2 text-[14px] text-ink placeholder:text-ink-soft/60 focus:border-pine";
@@ -125,6 +126,9 @@ export default function SetPanel({
           value={cfg.anchor}
           onChange={(e) => onChange({ anchor: e.target.value })}
         />
+        <div className="mt-1.5">
+          <DictateButton onText={(t) => onChange({ anchor: cfg.anchor ? `${cfg.anchor} ${t}` : t })} />
+        </div>
       </Field>
 
       <Field label="What varies across the texts" hint={axis.hint}>
@@ -243,6 +247,21 @@ export default function SetPanel({
               {l.label} <span className="opacity-70">{l.words}</span>
             </button>
           ))}
+        </div>
+      </Field>
+
+      <Field
+        label="Notes for the writer — optional"
+        hint="Steer the whole set in your own words — a framing, an era, a constraint, a topic to avoid across every text. Type or dictate. It works within the rules; it can't override the levels or the constitution."
+      >
+        <textarea
+          className={`${inputCls} min-h-[72px] resize-y`}
+          placeholder="e.g. tie every text to our resistance unit; keep the tone celebratory; no texts about incarceration"
+          value={cfg.notes}
+          onChange={(e) => onChange({ notes: e.target.value })}
+        />
+        <div className="mt-1.5">
+          <DictateButton onText={(t) => onChange({ notes: cfg.notes ? `${cfg.notes} ${t}` : t })} />
         </div>
       </Field>
 
