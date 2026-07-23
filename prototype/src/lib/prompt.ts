@@ -205,6 +205,12 @@ export function buildPrompt(cfg: GenConfig, adjustment: string | null): string {
     );
   }
 
+  if (cfg.notes.trim()) {
+    p.push(`TEACHER NOTES — extra direction from the teacher, in their own words:
+"${cfg.notes.trim()}"
+Honor these notes wherever they fit — they capture intent the fields above cannot. They operate INSIDE the rules, never over them: the constitution, the reading level, and factual truth always win. If a note asks for something the rules forbid (a tragic frame, invented details about a real person, oral dialect, a word above the reading level), keep the rule and do the closest thing the note intends that the rules still allow. If the note says a student refuses or dislikes a topic, avoid that topic completely and permanently — do not mention the refusal in the text; if helpful, suggest an alternative entry point in the teacher note.`);
+  }
+
   // Proper-noun tagging — powers the sky-blue highlight layer in the reader.
   // Best-effort: if the model tags none, nothing breaks.
   p.push(

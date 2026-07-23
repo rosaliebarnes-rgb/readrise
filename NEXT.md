@@ -69,6 +69,14 @@ Production `readrise` (the single-file `index.html` app) is untouched until cuto
       guard as backup, and each text is told where it sits in the range so it
       calibrates against the others. Verified: 300L came out at 5.1 words/sentence
       vs 900L at 16.4.
+- [x] **Notes for the writer (type or dictate).** Free-text steering field on One
+      Student for the long tail of teacher intent the fields can't cover (framing,
+      constraints, a student's topic to avoid → Hard Rule 4). In-app mic via the
+      Web Speech API with a graceful fallback (the OS/keyboard mic dictates into any
+      field anyway). Prompt-wired as strictly SUBORDINATE: it steers within the
+      constitution, reading level, and factual truth, never over them. Verified:
+      "make the lead a woman + make it tragic" → female lead honored, tragedy
+      refused (centered craft/pride instead). _Not yet on class sets._
 - [ ] _(add more as you find them)_
 
 > **Deploy note:** for the prototype, use `vercel deploy --prod --force` — a plain

@@ -8,6 +8,7 @@ import PhonicsLadder from "@/components/PhonicsLadder";
 import OutputPanel from "@/components/OutputPanel";
 import SetPanel from "@/components/SetPanel";
 import SetOutput from "@/components/SetOutput";
+import DictateButton from "@/components/DictateButton";
 
 type Target = "Independent" | "Instructional";
 
@@ -88,6 +89,7 @@ export default function Home() {
   const [supports, setSupports] = useState({ wordGrid: true, wordCount: false });
   const [activities, setActivities] = useState<Activity[]>(["comprehension"]);
   const [requestedWords, setRequestedWords] = useState("");
+  const [notes, setNotes] = useState("");
   const [mathSkill, setMathSkill] = useState("");
 
   const [reader, setReader] = useState<ReaderSettings>(READER_DEFAULT);
@@ -214,6 +216,7 @@ export default function Home() {
       length,
       goal,
       requestedWords,
+      notes,
       twrParts,
       mathSkill,
       outputs: {
@@ -432,6 +435,20 @@ export default function Home() {
                         value={genre}
                         onChange={(e) => setGenre(e.target.value)}
                       />
+                    </Field>
+                    <Field
+                      label="Notes for the writer — optional"
+                      hint="Anything the fields don't cover — a framing, a constraint, a topic to avoid. Type or dictate. It steers within the rules; it can't override the reading level or the constitution."
+                    >
+                      <textarea
+                        className={`${inputCls} min-h-[72px] resize-y`}
+                        placeholder="e.g. make the lead a woman; tie it to our immigration unit; this student won't read anything about sports"
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                      />
+                      <div className="mt-1.5">
+                        <DictateButton onText={(t) => setNotes((prev) => (prev ? `${prev} ${t}` : t))} />
+                      </div>
                     </Field>
                     <Field label="Length">
                       <div className="flex flex-wrap gap-1.5">

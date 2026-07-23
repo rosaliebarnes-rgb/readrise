@@ -32,6 +32,7 @@ export interface GenConfig {
   length: string; // LENGTHS id
   goal: string; // resolved learning goal (from skill chips / IEP text / standard)
   requestedWords: string; // teacher-requested words to work into the text
+  notes: string; // free-text steering — subordinate to the constitution + level
   twrParts: string[]; // which TWR scaffolds to emit: subset of ["A","B","C","D"]
   mathSkill: string; // math skill/level for word problems (independent of reading level)
   outputs: Outputs;
