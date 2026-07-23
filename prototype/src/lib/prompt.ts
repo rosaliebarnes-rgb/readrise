@@ -364,7 +364,7 @@ export function buildSetTextPrompt(
 - THIS TEXT'S ANGLE: ${t.title} — ${t.angle}
 - READING LEVEL for this text: ${t.level.trim() || "(not set)"}
 - FORM: follow what the description implies (poems, interviews, profiles…); default to nonfiction prose if it doesn't say.
-- Length: aim for a short-to-medium passage unless the description asks otherwise.`);
+- Length: about ${lengthObj.target} words (${lengthObj.words}), unless the description asks for something different.`);
   } else {
     p.push(`THIS TEXT:
 - Text ${t.n} of ${total} in the set

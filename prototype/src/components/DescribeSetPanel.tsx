@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { LENGTHS } from "@/lib/domain";
 import type { SetConfig } from "@/lib/types";
 import DictateButton from "./DictateButton";
 
@@ -179,6 +180,26 @@ export default function DescribeSetPanel({
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <span className="mb-1.5 block text-[12px] font-medium tracking-wide text-pine">Length (each text)</span>
+        <div className="flex flex-wrap gap-1.5">
+          {LENGTHS.map((l) => (
+            <button
+              key={l.id}
+              type="button"
+              onClick={() => onChange({ length: l.id })}
+              className={`rounded-full border px-3 py-1.5 text-[12.5px] transition-colors ${
+                cfg.length === l.id
+                  ? "border-pine bg-pine text-white"
+                  : "border-hair bg-white text-ink-soft hover:bg-pine-soft/40"
+              }`}
+            >
+              {l.label} <span className="opacity-70">{l.words}</span>
+            </button>
+          ))}
         </div>
       </div>
 
