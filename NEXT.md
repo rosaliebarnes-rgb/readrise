@@ -136,6 +136,18 @@ Production `readrise` (the single-file `index.html` app) is untouched until cuto
       free-text column. Routes to the current production feedback sheet by default;
       set `FEEDBACK_WEBHOOK_URL` to point at a dedicated prototype sheet if you want
       separation. Verified end to end (`{ok:true}`; one labeled smoke-test row landed).
+- [x] **Describe mode reached parity on Length + goal alignment (One Student).**
+      Describe it was missing the **Length** control and the **Align to a goal**
+      (Skill / IEP / Standard) picker that Guided has — so word count was left to
+      prose-guessing and there was no formal standard/IEP alignment. Both restored.
+      Length feeds a real word target; the goal is the higher-value one — it routes
+      through `comprehensionLogic()` so the picked skill/standard drives the exact
+      question frames (evidence → single DIRECTIONS line + varied phrasings, main
+      idea → central idea, vocabulary → word-in-context), which a prose hint won't
+      reliably reproduce. Extracted the goal UI into a shared **GoalPicker** used by
+      both Guided and Describe so they can't drift. Describe-mode sets already got
+      the same Length fix. Verified: describe + "cite evidence" + Long → 380-word
+      text with the evidence DIRECTIONS frame and 5 varied evidence questions.
 - [ ] _(add more as you find them)_
 
 > **Deploy note:** for the prototype, use `vercel deploy --prod --force` — a plain

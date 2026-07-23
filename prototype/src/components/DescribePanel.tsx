@@ -1,6 +1,9 @@
 "use client";
 
+import type { Dispatch, SetStateAction } from "react";
+import { LENGTHS } from "@/lib/domain";
 import DictateButton from "./DictateButton";
+import GoalPicker, { type GoalMode } from "./GoalPicker";
 
 const inputCls =
   "w-full rounded-lg border border-hair bg-white px-3 py-2 text-[14px] text-ink placeholder:text-ink-soft/60 focus:border-pine";
@@ -19,20 +22,40 @@ export default function DescribePanel({
   text,
   level,
   target,
+  length,
   onText,
   onLevel,
   onTarget,
+  onLength,
   onGenerate,
   busy,
+  goalMode,
+  setGoalMode,
+  skillChips,
+  setSkillChips,
+  iepText,
+  setIepText,
+  ccss,
+  setCcss,
 }: {
   text: string;
   level: string;
   target: "Independent" | "Instructional";
+  length: string;
   onText: (t: string) => void;
   onLevel: (l: string) => void;
   onTarget: (t: "Independent" | "Instructional") => void;
+  onLength: (l: string) => void;
   onGenerate: () => void;
   busy: boolean;
+  goalMode: GoalMode;
+  setGoalMode: (m: GoalMode) => void;
+  skillChips: string[];
+  setSkillChips: Dispatch<SetStateAction<string[]>>;
+  iepText: string;
+  setIepText: (v: string) => void;
+  ccss: string;
+  setCcss: (v: string) => void;
 }) {
   return (
     <div className="pb-4">
@@ -43,7 +66,7 @@ export default function DescribePanel({
 
       <Field
         label="Describe what you need"
-        hint="Everything except the reading level is pulled from this — topic, culture, interests, goal, framing, a topic to avoid."
+        hint="Everything except the reading level is pulled from this — topic, culture, interests, framing, a topic to avoid."
       >
         <textarea
           className={`${inputCls} min-h-[160px] resize-y leading-relaxed`}
@@ -88,6 +111,36 @@ export default function DescribePanel({
             : "Read with teacher support. Stretch words and longer sentences allowed."}
         </span>
       </Field>
+
+      <Field label="Length">
+        <div className="flex flex-wrap gap-1.5">
+          {LENGTHS.map((l) => (
+            <button
+              key={l.id}
+              type="button"
+              onClick={() => onLength(l.id)}
+              className={`rounded-full border px-3 py-1.5 text-[12.5px] transition-colors ${
+                length === l.id
+                  ? "border-pine bg-pine text-white"
+                  : "border-hair bg-white text-ink-soft hover:bg-pine-soft/40"
+              }`}
+            >
+              {l.label} <span className="opacity-70">{l.words}</span>
+            </button>
+          ))}
+        </div>
+      </Field>
+
+      <GoalPicker
+        goalMode={goalMode}
+        setGoalMode={setGoalMode}
+        skillChips={skillChips}
+        setSkillChips={setSkillChips}
+        iepText={iepText}
+        setIepText={setIepText}
+        ccss={ccss}
+        setCcss={setCcss}
+      />
 
       <button
         type="button"

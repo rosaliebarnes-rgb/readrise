@@ -31,6 +31,8 @@ export async function POST(req: Request) {
     description?: string;
     level?: string;
     target?: string;
+    length?: string;
+    goal?: string;
     model?: string;
     refine?: string;
     previous?: ParsedSections;
@@ -49,11 +51,15 @@ export async function POST(req: Request) {
   const model = body.model && ALLOWED_MODELS.has(body.model) ? body.model : MODEL;
   const client = new Anthropic({ apiKey: key });
 
-  // A refine pass carries the change + the prior output; a first pass carries neither.
-  const opts =
-    body.refine?.trim() && body.previous
+  // length + goal always ride along; a refine pass also carries the change + the
+  // prior output so the model edits instead of regenerating.
+  const opts = {
+    length: body.length,
+    goal: body.goal,
+    ...(body.refine?.trim() && body.previous
       ? { refine: body.refine, previousText: reassemble(body.previous) }
-      : undefined;
+      : {}),
+  };
 
   try {
     const message = await client.messages.create({

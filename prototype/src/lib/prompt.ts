@@ -423,8 +423,10 @@ export function buildDescribePrompt(
   desc: string,
   level: string,
   target: "Independent" | "Instructional",
-  opts?: { refine?: string; previousText?: string },
+  opts?: { refine?: string; previousText?: string; length?: string; goal?: string },
 ): string {
+  const lengthObj = LENGTHS.find((l) => l.id === opts?.length) || LENGTHS[0];
+  const goal = opts?.goal?.trim() || "";
   const profile: StudentProfile = {
     name: "",
     age: "",
@@ -444,7 +446,8 @@ export function buildDescribePrompt(
   p.push(`WHAT THE TEACHER ASKED FOR — their own words. This is the spec. Pull the topic, the framing, any student context (culture, interests, age), and any comprehension goal from it:
 "${desc.trim()}"`);
   p.push(`READING LEVEL: ${level.trim() || "(none given)"}
-READING TARGET: ${target}`);
+READING TARGET: ${target}
+LENGTH: about ${lengthObj.target} words (${lengthObj.words}), unless the description asks for something different.${goal ? `\nLEARNING GOAL: ${goal}` : ""}`);
 
   if (target === "Independent") {
     p.push(independentRules(profile));
@@ -473,7 +476,7 @@ ${opts.previousText.trim()}`);
     `===TEXT===
 Title on the first line, then the passage in paragraphs separated by a blank line. Italicize practice words with *asterisks*; wrap proper nouns in {{curly braces}}.`,
     `===COMPREHENSION===
-3 to 5 comprehension questions answerable from the text and readable at this level. If the description names a comprehension focus (main idea, finding evidence, vocabulary, inference…), match it. No yes/no questions — every question sends the student back into the text. Number each. No answer lines.`,
+${goal ? `${comprehensionLogic(goal)} ` : "If the description names a comprehension focus (main idea, finding evidence, vocabulary, inference…), match it. "}3 to 5 questions, answerable from the text and readable at this level. No yes/no questions — every question sends the student back into the text. Number each. No answer lines.`,
   ];
   if (target === "Independent") {
     sections.push("===TEACHERNOTE===");
