@@ -46,8 +46,13 @@ export type Adjustment = "simpler" | "tighter" | null;
    held constant across every text (the repeated-encounter mechanism).
 --------------------------------------------------------------------------- */
 export interface SetConfig {
-  anchor: string; // the anchor topic
-  axis: string; // AXES id — what varies across the texts
+  /* Describe mode: the whole set in the teacher's own words (typed or dictated).
+     When set, it drives the plan — the model derives the anchor, the vary-axis,
+     and the shared vocabulary from it. Empty in guided mode. Levels stay exact
+     either way (the spread is the point and can't be inferred from prose). */
+  describe: string;
+  anchor: string; // the anchor topic (guided mode)
+  axis: string; // AXES id — what varies across the texts (guided mode)
   sharedVocab: string; // teacher-supplied words to hold constant (optional)
   levels: string[]; // one reading level per text, in order
   mode: string;

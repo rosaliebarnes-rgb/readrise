@@ -287,18 +287,28 @@ function setGoal(cfg: SetConfig): string {
 
 export function buildSetPlanPrompt(cfg: SetConfig): string {
   const axis = AXES.find((a) => a.id === cfg.axis) || AXES[0];
+  const described = cfg.describe?.trim();
   const n = cfg.levels.length;
   const p: string[] = [];
+  const levelLine = cfg.levels.map((l, i) => `text ${i + 1} = ${l.trim() || "(not set)"}`).join(" · ");
 
   p.push(
     `You are planning a WIDE-READING SET for one class: ${n} texts on ONE anchor, written at different reading levels, sharing a single vocabulary spine. Every student reads about the same thing at their own level, so the whole class can discuss it together.`,
   );
   p.push(CONSTITUTION);
-  p.push(`THE SET:
+  if (described) {
+    p.push(`WHAT THE TEACHER WANTS — their own words. This is the spec for the whole set. From it: pick ONE clear ANCHOR every text shares, decide what VARIES across the texts (culture/place, discipline, point of view, era, or genre — whatever the description implies), and choose the SHARED VOCABULARY. If the description names a form (poems, interviews, profiles), use it.
+"${described}"
+
+NUMBER OF TEXTS: ${n}
+READING LEVELS, in order: ${levelLine}`);
+  } else {
+    p.push(`THE SET:
 - ANCHOR (every text is about this): ${cfg.anchor}
 - WHAT VARIES ACROSS THE TEXTS: ${axis.label} — ${axis.hint}
 - NUMBER OF TEXTS: ${n}
-- READING LEVELS, in order: ${cfg.levels.map((l, i) => `text ${i + 1} = ${l.trim() || "(not set)"}`).join(" · ")}`);
+- READING LEVELS, in order: ${levelLine}`);
+  }
 
   p.push(`SHARED VOCABULARY — the connective tissue of the set.
 ${
@@ -309,7 +319,7 @@ ${
 Every text uses the SAME words. The repetition is the point: a student meets each word in several contexts, each at their own level.`);
 
   p.push(`RULES FOR THE PLAN:
-- Every text shares the anchor. ONLY the ${axis.label.toLowerCase()} varies. Each text gets a distinct, specific angle — no two may cover the same ground.
+- Every text shares the anchor. ${described ? "Each text gets a distinct, specific angle along the axis you chose from the description — no two may cover the same ground." : `ONLY the ${axis.label.toLowerCase()} varies. Each text gets a distinct, specific angle — no two may cover the same ground.`}
 - BE SPECIFIC. Name real nations, peoples, places, and years. Never "traditions from around the world," never "a community somewhere." Cultural angles must be written from the INSIDE, as if the reader belongs to that community.
 - RESTRICTED OR SACRED KNOWLEDGE IS NOT OURS TO RENDER. Anchor only on what communities have themselves made public.
 - The LOWEST-level text must NOT go thin or babyish. Same conceptual depth as the highest — simpler words, not smaller ideas. If an angle only works at a high level, pick a different angle.
@@ -339,6 +349,7 @@ export function buildSetTextPrompt(
   total: number,
 ): string {
   const axis = AXES.find((a) => a.id === cfg.axis) || AXES[0];
+  const described = cfg.describe?.trim();
   const lengthObj = LENGTHS.find((l) => l.id === cfg.length) || LENGTHS[1];
   const p: string[] = [];
 
@@ -346,7 +357,16 @@ export function buildSetTextPrompt(
     `You are writing ONE text in a wide-reading set for a class. Every text in the set shares an anchor and a vocabulary spine; this one has its own angle and its own reading level. The reader is an adolescent — intellectually serious, culturally alive, written at the level specified.`,
   );
   p.push(CONSTITUTION);
-  p.push(`THIS TEXT:
+  if (described) {
+    p.push(`THIS TEXT:
+- Text ${t.n} of ${total} in the set
+- THE SET, in the teacher's own words: "${described}"
+- THIS TEXT'S ANGLE: ${t.title} — ${t.angle}
+- READING LEVEL for this text: ${t.level.trim() || "(not set)"}
+- FORM: follow what the description implies (poems, interviews, profiles…); default to nonfiction prose if it doesn't say.
+- Length: aim for a short-to-medium passage unless the description asks otherwise.`);
+  } else {
+    p.push(`THIS TEXT:
 - Text ${t.n} of ${total} in the set
 - ANCHOR (shared by the whole set): ${cfg.anchor}
 - THIS TEXT'S ANGLE (varies on ${axis.label}): ${t.title} — ${t.angle}
@@ -354,6 +374,7 @@ export function buildSetTextPrompt(
 - Mode: ${cfg.mode}
 - Length: about ${lengthObj.target} words (${lengthObj.words}).${setGoal(cfg) ? `
 - LEARNING GOAL for the set: ${setGoal(cfg)}` : ""}`);
+  }
 
   p.push(`SHARED VOCABULARY — use EVERY one of these words naturally in this text: ${vocab.join(", ")}.
 The same words appear in every text in the set. That is deliberate: repeated encounters at different levels are how the words stick. Italicize each one with *single asterisks* where it appears. Do NOT swap them for synonyms.`);

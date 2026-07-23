@@ -26,8 +26,8 @@ export async function POST(req: Request) {
   }
 
   const cfg = body.config;
-  if (!cfg?.anchor?.trim()) {
-    return NextResponse.json({ error: "Give the set an anchor topic first." }, { status: 400 });
+  if (!cfg?.anchor?.trim() && !cfg?.describe?.trim()) {
+    return NextResponse.json({ error: "Describe the set, or give it an anchor topic first." }, { status: 400 });
   }
   if (!cfg.levels?.length || cfg.levels.some((l) => !l.trim())) {
     return NextResponse.json(

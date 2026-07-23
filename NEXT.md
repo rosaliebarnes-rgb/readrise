@@ -111,6 +111,31 @@ Production `readrise` (the single-file `index.html` app) is untouched until cuto
       Migration" + note "keep it celebratory — music/churches/businesses built; no
       lynching or race riots" planned three specific, celebratory angles (Bronzeville
       / Humboldt Park / Conant Gardens) with no violence framing.
+- [x] **Describe-first for class sets.** The Class set tab gets the same segmented
+      **Describe it / Guided steps** switch (Describe default). Describe = one prose
+      field (type/dictate) for the whole set + the level spread (kept structured —
+      the spread can't be inferred from prose and is what makes it a set) + the
+      per-text options. `SetConfig.describe` drives both set prompts (plan + each
+      text) via a branch: the model derives the anchor, the vary-axis, and the
+      shared vocabulary from the description; form follows what the prose implies.
+      `effectiveSetCfg()` clears the inactive mode's field so a leftover describe/
+      anchor never flips the prompt path; route guards accept anchor OR describe.
+      Verified: "jazz in Harlem, each text a different musician, shared music words"
+      → derived Armstrong/Ellington/Mary Lou Williams angles + a 6-word spine; the
+      300L text came out on-anchor, used all 6 words (defined in-line), at 6.0
+      words/sentence.
+- [x] **Model locked to Opus 4.8.** See Open decisions — `src/lib/model.ts` now
+      ships Opus 4.8; every route defaults to it. Verified live (endpoints return
+      `claude-opus-4-8`). Production carries the same constant at cutover.
+- [x] **Feedback path (open, describe-first + contact).** Always-available
+      "Share feedback" affordance at the foot of both tabs → one free-text field
+      plus an optional email/contact, no rating grid. Posts to a new `/api/feedback`
+      route that forwards to the Google Apps Script webhook server-side (so success
+      is actually confirmed, unlike the old browser no-cors POST). Payload is marked
+      `source: "readrise-prototype"` and mirrors the note into the sheet's existing
+      free-text column. Routes to the current production feedback sheet by default;
+      set `FEEDBACK_WEBHOOK_URL` to point at a dedicated prototype sheet if you want
+      separation. Verified end to end (`{ok:true}`; one labeled smoke-test row landed).
 - [ ] _(add more as you find them)_
 
 > **Deploy note:** for the prototype, use `vercel deploy --prod --force` — a plain
@@ -187,21 +212,16 @@ Reading-of-math scaffolds ("What is the question asking? Which numbers? What
 operation?") are a natural add to either.
 
 ## Open decisions
-- **Text-generation model.** Currently `claude-sonnet-4-6`. This is the single AI
-  call (passage + questions + TWR + teacher note). Cost is negligible at pilot
-  volume (~$0.03/gen on Sonnet, ~$0.05 on Opus, ~$0.01 on Haiku), so **quality
-  drives the choice, not price** (CLAUDE.md §12).
-  - Best quality: **Opus 4.8** ($5/$25/M).
-  - Best value + faster: **Sonnet 5** ($3/$15; intro $2/$10 through 2026-08-31) —
-    near-Opus reasoning at Sonnet price.
-  - Least expensive: Haiku 4.5 ($1/$5) — **false economy for the core text**;
-    reserve for fall tiering (definitions/thesaurus/examples).
-  - **Bake-off run (2 profiles, thinking off):** Opus 4.8 stayed truthful (no
-    fabricated details about real people), had the best decodability at the hardest
-    level, and centered craft → **leaning Opus 4.8**. Sonnet 5 warm/fast/cheaper but
-    drifted to fiction in a nonfiction slot. Sonnet 4.6 (current) fabricated details
-    about a real person (car name/year for Ron Aguirre) — the clearest strike.
-    _Not yet locked in_ — worth a larger run and a thinking-on comparison first.
+- ~~**Text-generation model.**~~ **DECIDED — locked to Opus 4.8** (`src/lib/model.ts`,
+  the one constant every route reads). The bake-off (2 profiles, thinking off) settled
+  it: Opus 4.8 stayed truthful (no fabricated details about real people), had the best
+  decodability at the hardest level, and centered craft; Sonnet 5 was warm/fast/cheaper
+  but drifted to fiction in a nonfiction slot; Sonnet 4.6 fabricated a car name/year for
+  a real person (Ron Aguirre) — the clearest strike. Cost is negligible at pilot volume
+  (~$0.05/gen), so quality drove it (CLAUDE.md §12). The routes still accept sonnet-4-6 /
+  sonnet-5 as an explicit override for a future re-tune; Haiku stays reserved for fall
+  tiering (definitions/thesaurus/examples), never the core text. _At cutover, carry this
+  same model constant into production._
 
 ## Closed
 - One-click PDF download → not needed; browser Save as PDF is fine.

@@ -10,6 +10,8 @@ import SetPanel from "@/components/SetPanel";
 import SetOutput from "@/components/SetOutput";
 import DictateButton from "@/components/DictateButton";
 import DescribePanel from "@/components/DescribePanel";
+import DescribeSetPanel from "@/components/DescribeSetPanel";
+import FeedbackPanel from "@/components/FeedbackPanel";
 
 type Target = "Independent" | "Instructional";
 
@@ -110,7 +112,11 @@ export default function Home() {
   const [parsed, setParsed] = useState<ParsedSections | null>(null);
 
   /* ---- class sets: their own state, so switching tabs never wipes either ---- */
+  // Describe-first here too: the set is described in prose by default; Guided is
+  // the structured builder, one tap away.
+  const [csInput, setCsInput] = useState<"guided" | "describe">("describe");
   const [setCfg, setSetCfg] = useState<SetConfig>({
+    describe: "",
     anchor: "",
     axis: "culture",
     sharedVocab: "",
@@ -131,6 +137,12 @@ export default function Home() {
   const [setProgress, setSetProgress] = useState("");
   const [csError, setCsError] = useState<string | null>(null);
 
+  // Send only the fields the active mode uses, so a stray describe (or anchor)
+  // left over from the other mode never flips which prompt path the server takes.
+  function effectiveSetCfg(): SetConfig {
+    return csInput === "describe" ? { ...setCfg, anchor: "" } : { ...setCfg, describe: "" };
+  }
+
   async function planSet() {
     setCsBusy(true);
     setCsError(null);
@@ -141,7 +153,7 @@ export default function Home() {
       const res = await fetch("/api/plan-set", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ config: setCfg }),
+        body: JSON.stringify({ config: effectiveSetCfg() }),
       });
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error || `Request failed (${res.status}).`);
@@ -159,6 +171,7 @@ export default function Home() {
     setCsBusy(true);
     setCsError(null);
     setSetProgress(`Writing ${setPlan.texts.length} texts…`);
+    const cfgForWrite = effectiveSetCfg();
     try {
       const settled = await Promise.allSettled(
         setPlan.texts.map(async (t) => {
@@ -166,7 +179,7 @@ export default function Home() {
             method: "POST",
             headers: { "content-type": "application/json" },
             body: JSON.stringify({
-              config: setCfg,
+              config: cfgForWrite,
               planned: t,
               vocab: setPlan.vocab,
               total: setPlan.texts.length,
@@ -360,12 +373,39 @@ export default function Home() {
           </div>
 
           {tab === "set" ? (
-            <SetPanel
-              cfg={setCfg}
-              onChange={(patch) => setSetCfg((prev) => ({ ...prev, ...patch }))}
-              onPlan={planSet}
-              busy={csBusy}
-            />
+            <>
+              <div className="mb-4 inline-flex rounded-lg border border-hair bg-hair/40 p-0.5">
+                {(["describe", "guided"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setCsInput(m)}
+                    className={`rounded-md px-3.5 py-1.5 text-[12.5px] font-medium transition-colors ${
+                      csInput === m
+                        ? "bg-white text-pine shadow-sm"
+                        : "text-ink-soft hover:text-ink"
+                    }`}
+                  >
+                    {m === "describe" ? "Describe it" : "Guided steps"}
+                  </button>
+                ))}
+              </div>
+              {csInput === "describe" ? (
+                <DescribeSetPanel
+                  cfg={setCfg}
+                  onChange={(patch) => setSetCfg((prev) => ({ ...prev, ...patch }))}
+                  onPlan={planSet}
+                  busy={csBusy}
+                />
+              ) : (
+                <SetPanel
+                  cfg={setCfg}
+                  onChange={(patch) => setSetCfg((prev) => ({ ...prev, ...patch }))}
+                  onPlan={planSet}
+                  busy={csBusy}
+                />
+              )}
+            </>
           ) : (
             <>
               <div className="mb-4 inline-flex rounded-lg border border-hair bg-hair/40 p-0.5">
@@ -764,7 +804,7 @@ export default function Home() {
                   plan={setPlan}
                   onPlanChange={setSetPlan}
                   results={setResults}
-                  anchor={setCfg.anchor}
+                  anchor={setCfg.anchor.trim() || setCfg.describe.trim().split(/[.\n]/)[0].slice(0, 60)}
                   cfg={setCfg}
                   busy={csBusy}
                   progress={setProgress}
@@ -858,6 +898,8 @@ export default function Home() {
           )}
             </>
           )}
+
+          <FeedbackPanel context={tab === "set" ? `class-set/${csInput}` : `one-student/${inputMode}`} />
         </div>
       </main>
     </div>

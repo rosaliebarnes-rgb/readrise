@@ -33,7 +33,7 @@ export async function POST(req: Request) {
   }
 
   const { config: cfg, planned, vocab, total } = body;
-  if (!cfg?.anchor || !planned?.title) {
+  if ((!cfg?.anchor?.trim() && !cfg?.describe?.trim()) || !planned?.title) {
     return NextResponse.json({ error: "Missing set config or planned text." }, { status: 400 });
   }
 
