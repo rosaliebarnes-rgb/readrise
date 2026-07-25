@@ -4,7 +4,7 @@ import { useState } from "react";
 import { LENGTHS, MODES, STAGES, ccssLabel } from "@/lib/domain";
 import { READER_DEFAULT, type ReaderSettings } from "@/lib/reader";
 import type { GenConfig, ParsedSections, SetConfig, SetPlan, SetTextResult } from "@/lib/types";
-import PhonicsLadder from "@/components/PhonicsLadder";
+import DecodingStagePicker from "@/components/DecodingStagePicker";
 import OutputPanel from "@/components/OutputPanel";
 import SetPanel from "@/components/SetPanel";
 import SetOutput from "@/components/SetOutput";
@@ -497,7 +497,7 @@ export default function Home() {
                       label="Decoding stage — optional, more precise"
                       hint="Highest stage taught. Everything at or below it is fair game; nothing above."
                     >
-                      <PhonicsLadder value={stage} onChange={chooseStage} />
+                      <DecodingStagePicker value={stage} onChange={chooseStage} />
                     </Field>
                     <Field label="Reading target">
                       <div className="flex gap-1.5">
