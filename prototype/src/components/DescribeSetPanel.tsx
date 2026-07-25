@@ -27,6 +27,7 @@ export default function DescribeSetPanel({
 }) {
   const [lo, setLo] = useState("");
   const [hi, setHi] = useState("");
+  const [showEach, setShowEach] = useState(false);
   const [attempted, setAttempted] = useState(false);
   const describeRef = useRef<HTMLTextAreaElement>(null);
   const levelsRef = useRef<HTMLDivElement>(null);
@@ -35,26 +36,28 @@ export default function DescribeSetPanel({
   const missingLevels = cfg.levels.filter((l) => !l.trim()).length;
   const needsDescribe = !cfg.describe.trim();
 
-  function setCount(next: number) {
-    onChange({ levels: Array.from({ length: next }, (_, i) => cfg.levels[i] ?? "") });
-  }
   function setLevel(i: number, v: string) {
     const levels = [...cfg.levels];
     levels[i] = v;
     onChange({ levels });
   }
-  /* Interpolate evenly between two endpoints (numeric levels interpolate; other
-     formats just fill first and last). Same logic as the guided set panel. */
-  function spread(loV = lo, hiV = hi) {
-    if (!loV.trim() || !hiV.trim()) return;
+  /* Even spread across `count` texts from the two endpoints. Numeric levels
+     (Lexile / grade / WCPM) interpolate; anything non-numeric just fills first and
+     last (and the teacher fine-tunes the middle by hand). Recomputed live as the
+     lowest / highest / count change, so the per-text grid isn't needed up front. */
+  function applySpread(loV: string, hiV: string, count: number) {
+    if (!loV.trim() || !hiV.trim()) {
+      onChange({ levels: Array.from({ length: count }, (_, i) => cfg.levels[i] ?? "") });
+      return;
+    }
     const nLo = parseFloat(loV.replace(/[^\d.]/g, ""));
     const nHi = parseFloat(hiV.replace(/[^\d.]/g, ""));
     const suffix = /L\s*$/i.test(loV) || /L\s*$/i.test(hiV) ? "L" : "";
-    const levels = Array.from({ length: n }, (_, i) => {
-      if (!isNaN(nLo) && !isNaN(nHi) && n > 1) {
-        return `${Math.round(nLo + ((nHi - nLo) * i) / (n - 1))}${suffix}`;
+    const levels = Array.from({ length: count }, (_, i) => {
+      if (!isNaN(nLo) && !isNaN(nHi) && count > 1) {
+        return `${Math.round(nLo + ((nHi - nLo) * i) / (count - 1))}${suffix}`;
       }
-      return i === 0 ? loV : i === n - 1 ? hiV : cfg.levels[i] ?? "";
+      return i === 0 ? loV : i === count - 1 ? hiV : cfg.levels[i] ?? "";
     });
     onChange({ levels });
   }
@@ -68,8 +71,8 @@ export default function DescribeSetPanel({
     }
     if (missingLevels) {
       setAttempted(true);
+      setShowEach(true); // reveal the per-text fields so a gap can actually be fixed
       levelsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      levelsRef.current?.querySelector<HTMLInputElement>("input[data-empty='1']")?.focus();
       return;
     }
     setAttempted(false);
@@ -80,8 +83,8 @@ export default function DescribeSetPanel({
     <div className="pb-4">
       <p className="mb-1 text-[12.5px] leading-snug text-ink-soft">
         Say what you want the set to do — the topic, how the texts should differ, the tone, any
-        vocabulary to carry across. Type or dictate. Then set a level for each text; that spread is
-        what makes it a set.
+        vocabulary to carry across. Type or dictate. Then set the lowest and highest reading level;
+        that spread is what makes it a set.
       </p>
 
       <div className="mt-4">
@@ -114,7 +117,7 @@ export default function DescribeSetPanel({
             <button
               key={c}
               type="button"
-              onClick={() => setCount(c)}
+              onClick={() => applySpread(lo, hi, c)}
               className={`flex-1 rounded-lg border px-3 py-1.5 text-[13px] font-medium transition-colors ${
                 n === c
                   ? "border-pine bg-pine text-white"
@@ -127,52 +130,61 @@ export default function DescribeSetPanel({
         </div>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-4" ref={levelsRef}>
         <span className="mb-1.5 flex items-center gap-2 text-[12px] font-medium tracking-wide text-pine">
-          Reading level for each text
+          Reading levels — lowest & highest
           <span className="rounded-full bg-ochre/15 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-ochre uppercase">
             Required
           </span>
         </span>
-        <p className="mb-2 text-[11.5px] leading-snug text-ink-soft">
-          Every text needs a level — the spread is what lets the whole class read the same thing at
-          different levels.
-        </p>
+        <div className="flex gap-1.5">
+          <input
+            className={`${inputCls} ${attempted && missingLevels ? missingCls : ""}`}
+            placeholder="lowest e.g. 300L"
+            value={lo}
+            onChange={(e) => {
+              setLo(e.target.value);
+              applySpread(e.target.value, hi, n);
+            }}
+          />
+          <input
+            className={`${inputCls} ${attempted && missingLevels ? missingCls : ""}`}
+            placeholder="highest e.g. 900L"
+            value={hi}
+            onChange={(e) => {
+              setHi(e.target.value);
+              applySpread(lo, e.target.value, n);
+            }}
+          />
+        </div>
 
-        <div ref={levelsRef}>
-          <div className="mb-1 flex gap-1.5">
-            <input
-              className={inputCls}
-              placeholder="lowest e.g. 300L"
-              value={lo}
-              onChange={(e) => setLo(e.target.value)}
-              onBlur={() => spread()}
-            />
-            <input
-              className={inputCls}
-              placeholder="highest e.g. 900L"
-              value={hi}
-              onChange={(e) => setHi(e.target.value)}
-              onBlur={() => spread()}
-            />
-            <button
-              type="button"
-              onClick={() => spread()}
-              className="flex-none rounded-lg border border-pine px-3 text-[12.5px] font-medium text-pine hover:bg-pine-soft"
-            >
-              Fill
-            </button>
-          </div>
-          <p className="mb-2.5 text-[11.5px] text-ink-soft">
-            Type your lowest and highest — the rest fill in automatically. Edit any of them below.
+        {cfg.levels.some((l) => l.trim()) ? (
+          <p className="mt-1.5 text-[11.5px] leading-snug text-ink-soft">
+            Even spread across {n}:{" "}
+            <span className="font-medium text-ink">
+              {cfg.levels.map((l) => l.trim() || "—").join(" · ")}
+            </span>
           </p>
+        ) : (
+          <p className="mt-1.5 text-[11.5px] leading-snug text-ink-soft">
+            Set a lowest and highest — the {n} texts spread evenly between them.
+          </p>
+        )}
 
-          <div className="space-y-1.5">
+        <button
+          type="button"
+          onClick={() => setShowEach((v) => !v)}
+          className="mt-1.5 text-[12px] font-medium text-pine hover:underline"
+        >
+          {showEach ? "Hide per-text levels" : "Fine-tune each level"}
+        </button>
+
+        {showEach && (
+          <div className="mt-2 space-y-1.5">
             {cfg.levels.map((lv, i) => (
               <div key={i} className="flex items-center gap-2">
                 <span className="w-12 flex-none text-[11.5px] text-ink-soft">Text {i + 1}</span>
                 <input
-                  data-empty={lv.trim() ? "0" : "1"}
                   className={`${inputCls} ${attempted && !lv.trim() ? missingCls : ""}`}
                   placeholder="level"
                   value={lv}
@@ -180,8 +192,11 @@ export default function DescribeSetPanel({
                 />
               </div>
             ))}
+            <p className="text-[11.5px] leading-snug text-ink-soft">
+              You can also adjust any level when you review the plan, before texts are written.
+            </p>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="mt-4">
