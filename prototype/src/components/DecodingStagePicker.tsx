@@ -2,10 +2,15 @@
 
 import { STAGES } from "@/lib/domain";
 
-/* The UFLI placement assessment (free PDF). Restored from the production app — it's
-   how a teacher pins an exact decoding stage when they don't already know it. */
+/* UFLI Foundations — the University of Florida Literacy Institute's explicit,
+   systematic phonics program, grounded in the science of reading. Its scope and
+   sequence (what the stages below follow) is published free; the placement
+   assessment is a free PDF for pinning a student's exact stage. */
+const UFLI_SITE_URL = "https://ufli.education.ufl.edu/foundations/";
 const UFLI_ASSESSMENT_URL =
   "https://ufli.education.ufl.edu/wp-content/uploads/2025/08/UFLIAssessment_081025_v2.pdf";
+
+const linkCls = "text-pine underline underline-offset-2 hover:brightness-110";
 
 const selectCls =
   "w-full rounded-lg border border-hair bg-white px-3 py-2 text-[14px] text-ink focus:border-pine";
@@ -31,14 +36,16 @@ export default function DecodingStagePicker({
           </option>
         ))}
       </select>
-      <a
-        href={UFLI_ASSESSMENT_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-1.5 inline-block text-[11.5px] text-pine underline underline-offset-2 hover:brightness-110"
-      >
-        Not sure which stage? Free UFLI placement test →
-      </a>
+      <p className="mt-1.5 text-[11.5px] leading-snug text-ink-soft">
+        Stages follow the{" "}
+        <a href={UFLI_SITE_URL} target="_blank" rel="noopener noreferrer" className={linkCls}>
+          UFLI Foundations
+        </a>{" "}
+        scope &amp; sequence — a free, science-of-reading phonics progression. Not sure of a stage?{" "}
+        <a href={UFLI_ASSESSMENT_URL} target="_blank" rel="noopener noreferrer" className={linkCls}>
+          Free placement test →
+        </a>
+      </p>
     </div>
   );
 }
