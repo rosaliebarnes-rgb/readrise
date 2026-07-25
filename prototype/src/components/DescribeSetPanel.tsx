@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { LENGTHS } from "@/lib/domain";
 import type { SetConfig } from "@/lib/types";
 import DictateButton from "./DictateButton";
+import SetGoalPicker from "./SetGoalPicker";
 
 const inputCls =
   "w-full rounded-lg border border-hair bg-white px-3 py-2 text-[14px] text-ink placeholder:text-ink-soft/60 focus:border-pine";
@@ -202,6 +203,8 @@ export default function DescribeSetPanel({
           ))}
         </div>
       </div>
+
+      <SetGoalPicker cfg={cfg} onChange={onChange} />
 
       <div className="mt-4">
         <span className="mb-1.5 block text-[12px] font-medium tracking-wide text-pine">

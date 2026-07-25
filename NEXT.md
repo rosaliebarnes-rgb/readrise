@@ -148,6 +148,14 @@ Production `readrise` (the single-file `index.html` app) is untouched until cuto
       both Guided and Describe so they can't drift. Describe-mode sets already got
       the same Length fix. Verified: describe + "cite evidence" + Long → 380-word
       text with the evidence DIRECTIONS frame and 5 varied evidence questions.
+- [x] **Describe-mode class sets: restore the Skill/Standard goal picker.** The
+      describe-set panel had the per-text option checkboxes but no goal alignment, so
+      nothing drove the comprehension questions toward a Common Core standard. Added
+      it back — extracted the set goal UI (Skill/Standard, no IEP on sets) into a
+      shared **SetGoalPicker** used by both the Guided and Describe set panels. It
+      resolves through `setGoal(cfg)` → `comprehensionLogic()` so a picked standard
+      shapes the questions on every text in the set. Verified: describe-set + CCSS
+      RI.1 (cite evidence) → evidence DIRECTIONS frame + varied evidence questions.
 - [ ] _(add more as you find them)_
 
 > **Deploy note:** for the prototype, use `vercel deploy --prod --force` — a plain
