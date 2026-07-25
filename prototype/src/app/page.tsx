@@ -828,11 +828,32 @@ export default function Home() {
             </>
           ) : (
             !error && (
-              <div className="mt-24 text-center">
-                <p className="mx-auto max-w-sm text-[15px] leading-relaxed text-ink-soft">
-                  Set up the reader on the left, then generate a text. It writes a culturally specific,
+              <div className="mx-auto mt-20 max-w-md">
+                <p className="text-center text-[15px] leading-relaxed text-ink-soft">
+                  Set up the reader on the left, then generate a text — a culturally specific,
                   decodable-cold passage with the scaffolds you choose.
                 </p>
+                <div className="mt-8 rounded-2xl border border-hair bg-panel p-5">
+                  <div className="mb-1.5 text-[11px] font-semibold tracking-wide text-pine uppercase">
+                    Why UFLI
+                  </div>
+                  <p className="text-[13px] leading-relaxed text-ink-soft">
+                    Decodability here follows the{" "}
+                    <span className="font-medium text-ink">UFLI Foundations</span> scope and sequence —
+                    the explicit, systematic phonics progression from the University of Florida Literacy
+                    Institute, grounded in the science of reading. Its scope and sequence is published
+                    free, and it&apos;s what many classrooms already teach — so a text that&apos;s
+                    decodable at a given stage lines up with what the student is actually being taught.
+                  </p>
+                  <a
+                    href="https://ufli.education.ufl.edu/foundations/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-block text-[12px] text-pine underline underline-offset-2 hover:brightness-110"
+                  >
+                    About UFLI Foundations →
+                  </a>
+                </div>
               </div>
             )
           )}
