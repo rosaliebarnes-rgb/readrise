@@ -89,6 +89,35 @@ export interface SetTextResult {
   parsed: ParsedSections;
 }
 
+/* ---------------------------------------------------------------------------
+   BATCH ROSTER — a class list of pseudonymous students (no names, no PII), each
+   with a level + interests, generated in one pass: one tailored text + questions
+   per student. No persistence (this build); the roster lives in component state.
+--------------------------------------------------------------------------- */
+export interface RosterStudent {
+  id: string; // pseudonym / student code — NEVER a real name
+  level: string; // reading level (Lexile / grade / WCPM)
+  interests: string;
+  culture: string; // optional — keeps texts from going generic when given
+}
+
+export interface RosterConfig {
+  students: RosterStudent[];
+  target: ReadingTarget; // shared across the batch
+  topic: string; // optional shared topic; blank = each kid's interests drive their own
+  length: string;
+  mode: string;
+  goalMode: "skill" | "standard";
+  skillChips: string[];
+  ccss: string;
+}
+
+export interface RosterResult {
+  id: string;
+  level: string;
+  parsed: ParsedSections;
+}
+
 export interface ParsedSections {
   text: string;
   wordgrid: string;

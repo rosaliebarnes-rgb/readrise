@@ -3,7 +3,15 @@
 import { useState } from "react";
 import { LENGTHS, MODES, STAGES, ccssLabel } from "@/lib/domain";
 import { READER_DEFAULT, type ReaderSettings } from "@/lib/reader";
-import type { GenConfig, ParsedSections, SetConfig, SetPlan, SetTextResult } from "@/lib/types";
+import type {
+  GenConfig,
+  ParsedSections,
+  RosterConfig,
+  RosterResult,
+  SetConfig,
+  SetPlan,
+  SetTextResult,
+} from "@/lib/types";
 import DecodingStagePicker from "@/components/DecodingStagePicker";
 import OutputPanel from "@/components/OutputPanel";
 import SetPanel from "@/components/SetPanel";
@@ -13,6 +21,9 @@ import DescribePanel from "@/components/DescribePanel";
 import DescribeSetPanel from "@/components/DescribeSetPanel";
 import FeedbackPanel from "@/components/FeedbackPanel";
 import GoalPicker, { type GoalMode } from "@/components/GoalPicker";
+import RosterPanel from "@/components/RosterPanel";
+import RosterOutput from "@/components/RosterOutput";
+import { buildRosterGenConfig, poolMap } from "@/lib/roster";
 
 type Target = "Independent" | "Instructional";
 
@@ -65,7 +76,7 @@ const TWR_ORDER = ["A", "B", "C", "D"];
 
 export default function Home() {
   const [step, setStep] = useState(1);
-  const [tab, setTab] = useState<"one" | "set">("one");
+  const [tab, setTab] = useState<"one" | "set" | "roster">("one");
 
   const [name, setName] = useState("Marisol");
   const [age, setAge] = useState("15");
@@ -136,6 +147,22 @@ export default function Home() {
   const [setProgress, setSetProgress] = useState("");
   const [csError, setCsError] = useState<string | null>(null);
 
+  /* ---- batch roster: its own state; no persistence ---- */
+  const [rosterCfg, setRosterCfg] = useState<RosterConfig>({
+    students: [{ id: "", level: "", interests: "", culture: "" }],
+    target: "Instructional",
+    topic: "",
+    length: "Short",
+    mode: "Narrative nonfiction",
+    goalMode: "skill",
+    skillChips: [],
+    ccss: "",
+  });
+  const [rosterResults, setRosterResults] = useState<RosterResult[]>([]);
+  const [rosterBusy, setRosterBusy] = useState(false);
+  const [rosterProgress, setRosterProgress] = useState("");
+  const [rosterError, setRosterError] = useState<string | null>(null);
+
   // Send only the fields the active mode uses, so a stray describe (or anchor)
   // left over from the other mode never flips which prompt path the server takes.
   function effectiveSetCfg(): SetConfig {
@@ -203,6 +230,47 @@ export default function Home() {
     } finally {
       setCsBusy(false);
       setSetProgress("");
+    }
+  }
+
+  /* Batch roster: one /api/generate call per ready student, through a bounded
+     pool so a big class doesn't fire every request at once. */
+  async function generateRoster() {
+    const ready = rosterCfg.students.filter((s) => s.id.trim() && s.level.trim());
+    if (!ready.length) return;
+    setRosterBusy(true);
+    setRosterError(null);
+    setRosterResults([]);
+    setRosterProgress(`Writing ${ready.length} texts… 0 of ${ready.length}`);
+    try {
+      const settled = await poolMap(
+        ready,
+        5,
+        async (student) => {
+          const res = await fetch("/api/generate", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ config: buildRosterGenConfig(student, rosterCfg), adjustment: null }),
+          });
+          const data = await res.json();
+          if (!res.ok || data.error) throw new Error(data.error || `Failed for ${student.id}.`);
+          return { id: student.id, level: student.level, parsed: data.parsed as ParsedSections } as RosterResult;
+        },
+        (done, total) => setRosterProgress(`Writing ${total} texts… ${done} of ${total}`),
+      );
+      const ok = settled
+        .filter((s): s is PromiseFulfilledResult<RosterResult> => s.status === "fulfilled")
+        .map((s) => s.value);
+      if (!ok.length) throw new Error("Every text failed to generate. Try again.");
+      if (ok.length < ready.length) {
+        setRosterError(`${ready.length - ok.length} of ${ready.length} texts failed — the rest are below.`);
+      }
+      setRosterResults(ok);
+    } catch (e) {
+      setRosterError(e instanceof Error ? e.message : "Batch generation failed.");
+    } finally {
+      setRosterBusy(false);
+      setRosterProgress("");
     }
   }
 
@@ -357,23 +425,30 @@ export default function Home() {
           </p>
 
           <div className="mb-5 flex gap-1.5">
-            {(["one", "set"] as const).map((m) => (
+            {(["one", "set", "roster"] as const).map((m) => (
               <button
                 key={m}
                 type="button"
                 onClick={() => setTab(m)}
-                className={`flex-1 rounded-lg border px-3 py-2 text-[13px] font-medium transition-colors ${
+                className={`flex-1 rounded-lg border px-2.5 py-2 text-[13px] font-medium transition-colors ${
                   tab === m
                     ? "border-pine bg-pine-soft text-pine"
                     : "border-hair bg-white text-ink-soft hover:bg-pine-soft/40"
                 }`}
               >
-                {m === "one" ? "One student" : "Class set"}
+                {m === "one" ? "One student" : m === "set" ? "Class set" : "Roster"}
               </button>
             ))}
           </div>
 
-          {tab === "set" ? (
+          {tab === "roster" ? (
+            <RosterPanel
+              cfg={rosterCfg}
+              onChange={(patch) => setRosterCfg((prev) => ({ ...prev, ...patch }))}
+              onGenerate={generateRoster}
+              busy={rosterBusy}
+            />
+          ) : tab === "set" ? (
             <>
               <div className="mb-4 inline-flex rounded-lg border border-hair bg-hair/40 p-0.5">
                 {(["describe", "guided"] as const).map((m) => (
@@ -727,7 +802,33 @@ export default function Home() {
 
       <main className="flex-1 bg-ground">
         <div className="mx-auto max-w-3xl px-6 py-10 md:px-10">
-          {tab === "set" ? (
+          {tab === "roster" ? (
+            <>
+              {rosterError && (
+                <div className="mb-6 rounded-xl border border-coral-ink/30 bg-coral-bg px-4 py-3 text-[14px] text-coral-ink">
+                  {rosterError}
+                </div>
+              )}
+              {rosterBusy && !rosterResults.length ? (
+                <div className="fade-in mt-24 text-center text-[15px] text-ink-soft">
+                  <div className="mx-auto mb-4 h-6 w-6 animate-spin rounded-full border-2 border-hair border-t-pine" />
+                  {rosterProgress || "Writing the texts…"}
+                </div>
+              ) : rosterResults.length ? (
+                <RosterOutput results={rosterResults} reader={reader} onReaderChange={setReader} />
+              ) : (
+                !rosterError && (
+                  <div className="mt-24 text-center">
+                    <p className="mx-auto max-w-md text-[15px] leading-relaxed text-ink-soft">
+                      Build a class list on the left — pseudonyms, levels, and interests — then generate.
+                      Each student gets their own text at their level, from their interests, with
+                      comprehension questions. Nothing about a student is stored.
+                    </p>
+                  </div>
+                )
+              )}
+            </>
+          ) : tab === "set" ? (
             <>
               {csError && (
                 <div className="mb-6 rounded-xl border border-coral-ink/30 bg-coral-bg px-4 py-3 text-[14px] text-coral-ink">
@@ -839,7 +940,11 @@ export default function Home() {
             </>
           )}
 
-          <FeedbackPanel context={tab === "set" ? `class-set/${csInput}` : `one-student/${inputMode}`} />
+          <FeedbackPanel
+            context={
+              tab === "roster" ? "roster" : tab === "set" ? `class-set/${csInput}` : `one-student/${inputMode}`
+            }
+          />
         </div>
       </main>
     </div>
