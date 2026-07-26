@@ -10,42 +10,60 @@
 
 ## 0. The one-paragraph orientation
 
-ReadRise is a **single hosted web app** — one self-contained `index.html` (vanilla JS, no
-build step) plus one Vercel serverless function `api/generate.js` that holds the Anthropic API
-key server-side. Teachers open a URL and use it; they never touch a key. It generates a
-culturally-alive text a specific student can decode at ~90%+ cold, at levels as low as first
-grade, plus a four-day intervention around it. The hard part is not the code — it is honoring
-the pedagogy and the constitution in what the code produces. Most "bugs" are prompt, pedagogy,
-or profile-input problems, **not** code problems. Diagnose in chat before touching files.
+ReadRise is a hosted web app: a **Next.js 16 + TypeScript + Tailwind** app (App Router, vanilla
+React, self-hosted dyslexia fonts) that lives in **`prototype/`** and holds the Anthropic key
+server-side in Route Handlers. Teachers open a URL and use it; they never touch a key. It
+generates a culturally-alive text a specific student can decode at ~90%+ cold, at levels as low
+as first grade, plus the scaffolds/intervention around it — for **one student** or a **class
+set** (a wide-reading jigsaw), each reachable via a **Describe it** (natural-language/dictation)
+or **Guided steps** flow. The hard part is not the code — it is honoring the pedagogy and the
+constitution in what the code produces. Most "bugs" are prompt, pedagogy, or profile-input
+problems, **not** code problems. Diagnose in chat before touching files.
+
+> **Cutover happened 2026-07-25.** The old single-file `index.html` + `api/generate.js` app was
+> retired to **`legacy/`** (reference only, not deployed) and production was repointed to the
+> Next.js app. See §1 for the current shape.
 
 ---
 
 ## 1. Architecture & stack
 
-- **`index.html`** — the entire app. Single self-contained file, vanilla JS, **no build step**.
-  UI, prompt assembly, rendering, and the word-bank/word-count logic all live here.
-- **`api/generate.js`** — Vercel serverless function. Holds the Anthropic key server-side and
-  proxies text generation. Teachers need no key.
-- **Model:** `claude-sonnet-4-6`. Defined as a constant at the top of both files — keep them
-  in sync. (Fall plan tiers this: Haiku for definitions/thesaurus/examples, the big model for
-  text generation — see §12. Do not tier before then.)
-- **Feedback path:** browser → Google Apps Script → Google Sheet. This is why the app is NOT a
-  Claude artifact: the artifact sandbox blocks pop-ups and outbound requests, so printing and
-  feedback submission are both impossible there. The artifact is for *iterating*; the hosted
-  app is for *shipping*.
-- **Superseded — do not edit or resurrect:** `readrise.html` (the old teacher-enters-own-key
-  standalone) and the old `.jsx` artifact build.
+- **`prototype/`** — the entire live app (Next.js 16, App Router, React 19, Tailwind v4 via a
+  CSS `@theme` block, TypeScript, **a build step**). See `prototype/AGENTS.md`: this Next major
+  has breaking changes from training data — check `node_modules/next/dist/docs/` before writing
+  Next-specific code. Key files:
+  - `src/app/page.tsx` — the whole UI orchestrator (tabs, input-style toggles, output).
+  - `src/lib/prompt.ts` — **the engine**: constitution, constraint hierarchy, `buildPrompt`,
+    `buildDescribePrompt`, `buildSetPlanPrompt`/`buildSetTextPrompt`, `comprehensionLogic`.
+  - `src/lib/model.ts` — the one model constant (see below).
+  - `src/lib/domain.ts` / `parse.ts` / `packet.ts` / `reader.ts` / `types.ts` — data, parsing,
+    print packets, reader settings, shared types.
+  - `src/app/api/*/route.ts` — server Route Handlers holding `ANTHROPIC_API_KEY`:
+    `generate`, `describe`, `plan-set`, `set-text`, `feedback`.
+- **Model:** **`claude-opus-4-8`** — the single constant in `src/lib/model.ts`; every route
+  defaults to it (locked in after the bake-off; see NEXT.md "Open decisions"). Routes still
+  accept `sonnet-4-6`/`sonnet-5` as an override. (Fall plan may tier Haiku for
+  definitions/thesaurus/examples — see §12. Not yet.)
+- **Feedback path:** browser → `/api/feedback` (server-side) → Google Apps Script → Google Sheet.
+  Open, describe-first: one free-text field + optional email/contact, at the foot of both tabs.
+  The Apps Script URL is `FEEDBACK_WEBHOOK_URL` (falls back to the production feedback endpoint).
+- **Hosting:** Vercel project **`readrise`** → **readrise-pi.vercel.app**, built with
+  **Root Directory = `prototype`**. The isolated **`readrise-prototype`** project
+  (readrise-prototype.vercel.app) still exists as a staging surface off the same repo.
+- **Superseded — do not edit or resurrect:** everything in **`legacy/`** (the old single-file app
+  + its `api/generate.js` and `vercel.json`), and the old `.jsx` artifact build.
 
-### Repo layout (expected)
+### Repo layout
 ```
-index.html          # the whole app
-api/
-  generate.js        # serverless proxy, holds ANTHROPIC_API_KEY
-CLAUDE.md            # this file
-README.md            # human-facing dev/deploy notes
-vercel.json          # routing / function config
-.env.example         # documents required env vars (never commit real .env)
-.gitignore
+prototype/            # THE APP (Next.js) — deployed to production (Root Directory)
+  src/app/            #   page.tsx + api/*/route.ts
+  src/lib/            #   prompt.ts (engine), model.ts, domain/parse/packet/types…
+  src/components/     #   panels, pickers, renderers
+  AGENTS.md           #   "this is NOT the Next.js you know" — read the shipped docs
+legacy/               # retired single-file app (index.html, api/generate.js) — NOT deployed
+CLAUDE.md             # this file
+NEXT.md               # living backlog / decisions log
+README.md · SETUP.md  # human-facing notes
 ```
 
 ---
@@ -53,55 +71,60 @@ vercel.json          # routing / function config
 ## 2. Local dev workflow (Claude Code)
 
 > **Claude runs all command-line work in this project.** The user does not want to run shell
-> commands themselves. When a task needs the terminal — git, `vercel`, `gh`, `npm`, `vercel dev`,
-> deploys, checking logs — **Claude executes it directly** via its tools rather than printing
-> commands for the user to copy-paste. Exceptions are only the things Claude *cannot* do: browser
-> logins (Claude drives them and hands over the one-time code), and anything requiring the user's
-> secrets (e.g. pasting the real Anthropic key into `.env.local`). Report what was run and the
-> result; don't hand back a to-do list of commands.
+> commands themselves. When a task needs the terminal — git, `vercel`, `gh`, `npm`, deploys,
+> checking logs — **Claude executes it directly** via its tools rather than printing commands for
+> the user to copy-paste. Exceptions are only the things Claude *cannot* do: browser logins
+> (Claude drives them and hands over the one-time code), Vercel **project settings** that aren't
+> exposed to the CLI (e.g. Root Directory — the stored CLI token is not valid for the REST API,
+> so this is a dashboard hand-off), and anything requiring the user's secrets. Report what was
+> run and the result; don't hand back a to-do list of commands.
 
-**Toolchain is already installed** (2026-07-19): Node via **nvm** (`~/.nvm`), `vercel` (global
-npm), `gh` in `~/.local/bin`. GitHub (`rosaliebarnes-rgb`, HTTPS) and Vercel
-(scope `rosalie-s-projects3`, project `readrise`) are authenticated and linked. Node is **not on
-the default PATH**, so a plain non-login shell won't find `node`/`npm`/`vercel`/`gh`. Prefix
-terminal commands with:
+**Toolchain** (2026-07-19): Node via **nvm** (`~/.nvm`), `vercel` (global npm), `gh` in
+`~/.local/bin`. GitHub (`rosaliebarnes-rgb`, HTTPS) and Vercel (scope `rosalie-s-projects3`,
+projects `readrise` prod + `readrise-prototype` staging) are authenticated and linked. Node is
+**not on the default PATH** — prefix terminal commands with:
 
 ```bash
 export NVM_DIR="$HOME/.nvm"; \. "$NVM_DIR/nvm.sh" >/dev/null 2>&1; export PATH="$HOME/.local/bin:$PATH"
 ```
 
-This is a hosted app with a serverless function, so **don't just open `index.html` in a browser**
-— the `api/generate.js` route won't run. Run it locally with the Vercel CLI (already linked):
+Run it locally from **`prototype/`**:
 
 ```bash
-vercel dev               # serves index.html AND api/generate.js locally, usually :3000
+cd prototype && npm install && npm run dev     # Next dev server, usually :3000
+# or `vercel dev` for the Route Handlers with local env
 ```
 
-- Put the Anthropic key in a local `.env.local` (see `.env.example`). Never commit it.
-- `vercel dev` reads local env; production reads Vercel's Project → Settings → Environment
-  Variables. They are separate — setting one does not set the other.
-- If you only need to eyeball static HTML/CSS changes, any static server works, but generation
-  will 500 without the function running.
+- Put the Anthropic key in `prototype/.env.local` (`ANTHROPIC_API_KEY`); never commit it.
+- Local env and production env (Vercel → Project → Settings → Environment Variables) are
+  separate — setting one does not set the other. `ANTHROPIC_API_KEY` is set on both `readrise`
+  and `readrise-prototype` (Production + Preview).
+- `npm run build` in `prototype/` is the fast correctness check before deploying.
 
 ---
 
 ## 3. Deploy protocol & the gotchas that have actually bitten us
 
-**Normal deploy:** edit → commit to GitHub → Vercel redeploys automatically. Key/proxy don't
-need touching again.
+**Normal deploy:** edit → commit → push to `main`. The `readrise` project auto-deploys `main`
+(Root Directory = `prototype`). Then test in incognito with a *fresh* generation.
 
-- **Env var added after the last build is invisible** to the running function. Order matters:
-  save the key **then redeploy**, with **Production** checked. Symptom of getting it wrong: a
-  500 with *"No outgoing requests"* in the logs — the function never called Anthropic.
-- **Edit via GitHub's pencil, not download-and-re-upload.** Browsers rename downloads
-  `index(1).html`, which uploads as a *second* file Vercel ignores. (In Claude Code you'll be
-  editing files directly and pushing with git, which sidesteps this — but never hand-upload.)
-- **"You must be on a branch to edit"** = you're viewing a file at a specific commit (long hash
-  in the URL), often via a Vercel link. Go to the repo's main page first.
+- **Stale build cache:** a plain `vercel deploy --prod` has occasionally served a stale build (a
+  prompt-string change silently didn't ship). Use **`vercel deploy --prod --force`** when
+  CLI-deploying, and always smoke-test after.
+- **Preview deployments are SSO-protected**, production alias is public. So an anonymous
+  `curl` of a `*-rosalie-s-projects3.vercel.app` preview URL gets a 302 to `vercel.com/sso-api` —
+  that's protection, not a bad build. Verify on the public production URL (with instant rollback
+  armed) or promote and check readrise-pi.vercel.app.
+- **`vercel promote <deployment>` rebuilds** a fresh production deployment (it doesn't just
+  re-alias); wait for it to go Ready before the production alias switches.
+- **Root Directory / Framework are dashboard settings** (not CLI-settable with the stored token).
+  Production is `readrise` with Root Directory `prototype`, Framework Next.js.
+- **Env var added after the last build is invisible** to the running deployment — save it, then
+  redeploy with **Production** checked.
 - **After deploying, test in incognito and run a *fresh* generation.** Cached pages and stale
   on-screen output show old behavior even when new code is live.
-- **TextEdit renders HTML instead of showing code** (macOS): Settings → Open and Save →
-  "Display HTML files as HTML code." Not relevant inside Claude Code, but noted for hand-edits.
+- **Rollback:** Vercel keeps prior production deployments — `vercel rollback` (or promote the
+  prior deployment) restores instantly.
 
 ---
 
@@ -295,20 +318,20 @@ both the approval burden and the blast radius.
 
 ## 11. Roadmap — what to build, what NOT to build
 
-**Ship for Aug 5 (teachers return). Nothing that needs a database.**
+**Ship state (post-cutover 2026-07-25): the Next.js app is live in production.** The detailed
+running log of what shipped lives in **NEXT.md** — consult it before planning new work.
 1. Independent reading level — **done** (§5).
-2. **Wide-reading sets** — next build. One anchor (topic OR theme) + a vary axis
-   (culture/geography, discipline, POV, era, genre) + a level spread (independent → grade level),
-   with **shared vocabulary held constant** across the set as the connective tissue and
-   repeated-encounter mechanism. **UI = tabs at the top of the left panel: `[ One student ] [ Class set ]`,
-   not a landing-page fork.** Each tab keeps its own state (switching must not wipe the other);
-   shared output area. Set mode has **no student profile** → zero privacy surface. Hard rule: the
-   low-level text in a set must not go thin. Cultural sets must be insider-written and specific
-   (named nations/people/places/years) — never "rituals from around the world." **Restricted or
-   sacred knowledge is not ours to render** — anchor on what communities have made public.
-3. **Text history (teacher-saved)** — a log of who received which text (student, date, phonics
-   target, theme, title), one tab on the roster sheet. A log, not a brain — prediction is dropped;
-   the teacher makes every instructional decision.
+2. **Wide-reading sets** — **done.** One anchor + a vary axis + a level spread with **shared
+   vocabulary held constant**. UI = tabs at the top of the left panel `[ One student ] [ Class set ]`
+   (each keeps its own state; shared output). Two-stage: plan → review → write in parallel. Both
+   tabs have **Describe it** (natural-language/dictation, default) and **Guided steps**. Set mode
+   has **no student profile** → zero privacy surface. Hard rule holds: the low-level text must not
+   go thin; cultural sets insider-written and specific; restricted/sacred knowledge not ours.
+3. **Describe-first + dictation, refine, feedback path, UFLI dropdown + placement link** — all
+   **done** (see NEXT.md). Model **locked to Opus 4.8**.
+4. **Text history (teacher-saved)** — a log of who received which text (student, date, phonics
+   target, theme, title). A log, not a brain — prediction is dropped; the teacher makes every
+   instructional decision. **Not yet built** (needs persistence — see Deferred).
 
 **Deferred to fall:** accounts, database (Supabase + RLS + roles), hover-to-define (which doubles
 as formative assessment — taps = words above independent level), gamified reading counts (no AI,
@@ -342,7 +365,8 @@ pilot volume, API cost is dollars/month; don't sacrifice text quality to save pe
    `main` is the production branch (auto-deploys). Don't ask for permission each time; just do it
    and report what was pushed and the deploy result. (Still pause to confirm only for genuinely
    destructive or irreversible actions — e.g. history rewrites, force-pushes, deleting data.)
-5. **Keep the model constant in sync** across `index.html` and `api/generate.js`.
+5. **Model is one constant:** `prototype/src/lib/model.ts` (currently `claude-opus-4-8`). Every
+   route reads it — no second copy to keep in sync.
 6. When you change a rule that lives in a source doc, update the doc in the Claude project too —
    this file summarizes them and must not silently drift.
 7. **Keep this CLAUDE.md current as you go.** At the end of any significant development chunk
