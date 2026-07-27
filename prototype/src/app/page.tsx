@@ -111,6 +111,7 @@ export default function Home() {
   const [describeText, setDescribeText] = useState("");
   const [describeLevel, setDescribeLevel] = useState("");
   const [describeTarget, setDescribeTarget] = useState<Target>("Instructional");
+  const [describeStage, setDescribeStage] = useState<string | null>(null);
   const [refineText, setRefineText] = useState("");
   // Guided keeps the free-text note as a tucked-away escape hatch (topic refusals,
   // framing) so the stepped flow stays clean; Describe mode is free-text by default.
@@ -291,6 +292,7 @@ export default function Home() {
           target: describeTarget,
           length,
           goal,
+          stage: describeStage || "",
           ...(isRefine ? { refine, previous: parsed } : {}),
         }),
       });
@@ -506,10 +508,12 @@ export default function Home() {
                   level={describeLevel}
                   target={describeTarget}
                   length={length}
+                  stage={describeStage}
                   onText={setDescribeText}
                   onLevel={setDescribeLevel}
                   onTarget={setDescribeTarget}
                   onLength={setLength}
+                  onStage={setDescribeStage}
                   onGenerate={generateDescribe}
                   busy={busy}
                   goalMode={goalMode}

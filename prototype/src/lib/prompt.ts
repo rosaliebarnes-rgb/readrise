@@ -423,7 +423,7 @@ export function buildDescribePrompt(
   desc: string,
   level: string,
   target: "Independent" | "Instructional",
-  opts?: { refine?: string; previousText?: string; length?: string; goal?: string },
+  opts?: { refine?: string; previousText?: string; length?: string; goal?: string; stage?: string },
 ): string {
   const lengthObj = LENGTHS.find((l) => l.id === opts?.length) || LENGTHS[0];
   const goal = opts?.goal?.trim() || "";
@@ -432,11 +432,12 @@ export function buildDescribePrompt(
     age: "",
     culture: "",
     interests: "",
-    stage: "",
+    stage: opts?.stage?.trim() || "",
     comprehension: level,
     phonicsOn: false,
     phonicsLevel: "",
   };
+  const hasStage = !!resolveStage(profile);
 
   const p: string[] = [];
   p.push(
@@ -485,8 +486,8 @@ A short note FOR THE TEACHER (never shown to the student). These lines:
 FORM: the form used (prose, free verse, letter, dialogue) and, in one sentence, why.
 FRONT-LOAD: Layer 2 words kept OUT of the text for the teacher to pre-teach verbally. If none, write "none".
 WATCH: one sentence on what to watch for as this student reads.
-VERIFY: list any real people, organizations, dates, or events named, so the teacher can fact-check. If none, write "none".
-PRECISION: no decoding stage was given, so decodability is estimated from the reading level rather than verified against phonics patterns. Recommend the free UFLI placement test for an exact stage.`);
+VERIFY: list any real people, organizations, dates, or events named, so the teacher can fact-check. If none, write "none".${hasStage ? "" : `
+PRECISION: no decoding stage was given, so decodability is estimated from the reading level rather than verified against phonics patterns. Recommend the free UFLI placement test for an exact stage.`}`);
   }
   p.push(fmt.join("\n\n"));
   p.push(`Sections to include, in this order: ${sections.join(" ")}`);

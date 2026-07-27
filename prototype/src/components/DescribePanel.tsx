@@ -3,6 +3,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import { LENGTHS } from "@/lib/domain";
 import DictateButton from "./DictateButton";
+import DecodingStagePicker from "./DecodingStagePicker";
 import GoalPicker, { type GoalMode } from "./GoalPicker";
 
 const inputCls =
@@ -23,10 +24,12 @@ export default function DescribePanel({
   level,
   target,
   length,
+  stage,
   onText,
   onLevel,
   onTarget,
   onLength,
+  onStage,
   onGenerate,
   busy,
   goalMode,
@@ -42,10 +45,12 @@ export default function DescribePanel({
   level: string;
   target: "Independent" | "Instructional";
   length: string;
+  stage: string | null;
   onText: (t: string) => void;
   onLevel: (l: string) => void;
   onTarget: (t: "Independent" | "Instructional") => void;
   onLength: (l: string) => void;
+  onStage: (id: string | null) => void;
   onGenerate: () => void;
   busy: boolean;
   goalMode: GoalMode;
@@ -79,13 +84,20 @@ export default function DescribePanel({
         </div>
       </Field>
 
-      <Field label="Reading level" hint="Lexile, grade equivalent, or WCPM — the one input that must be exact.">
+      <Field label="Reading level" hint="Lexile, grade equivalent, or WCPM — the level you have.">
         <input
           className={inputCls}
           placeholder="e.g. 420L, 2nd grade, 60 WCPM"
           value={level}
           onChange={(e) => onLevel(e.target.value)}
         />
+      </Field>
+
+      <Field
+        label="Decoding stage — optional, for exact decodability"
+        hint="Where the student is in the phonics sequence. A level (above) only estimates decodability; a stage makes an Independent text decodable-exact."
+      >
+        <DecodingStagePicker value={stage} onChange={onStage} />
       </Field>
 
       <Field label="Reading target">
@@ -107,7 +119,9 @@ export default function DescribePanel({
         </div>
         <span className="mt-1 block text-[11.5px] leading-snug text-ink-soft">
           {target === "Independent"
-            ? "Decodable ~90% cold. Without a decoding stage, decodability is estimated from the reading level — the teacher note says so."
+            ? stage
+              ? "Decodable ~90% cold — checked against the decoding stage you set below."
+              : "Decodable ~90% cold. Without a decoding stage, decodability is estimated from the reading level (set a stage below for exact)."
             : "Read with teacher support. Stretch words and longer sentences allowed."}
         </span>
       </Field>

@@ -33,6 +33,7 @@ export async function POST(req: Request) {
     target?: string;
     length?: string;
     goal?: string;
+    stage?: string;
     model?: string;
     refine?: string;
     previous?: ParsedSections;
@@ -56,6 +57,7 @@ export async function POST(req: Request) {
   const opts = {
     length: body.length,
     goal: body.goal,
+    stage: body.stage,
     ...(body.refine?.trim() && body.previous
       ? { refine: body.refine, previousText: reassemble(body.previous) }
       : {}),
