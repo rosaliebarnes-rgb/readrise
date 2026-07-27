@@ -1,10 +1,20 @@
-# Decoding stages — the UFLI L1–L128 scope
+# Decoding stages
 
-For an **Independent** text, the student must decode it cold. That means using only
-spelling patterns they have been taught. This is the UFLI Foundations scope and sequence
-(the University of Florida Literacy Institute's explicit, systematic phonics progression,
-grounded in the science of reading). The stages are **cumulative** — a student at a later
-stage can read everything from the earlier stages too.
+For an **Independent** text, the student must decode it cold — using only the spelling
+patterns they have been taught so far. A student's **decoding stage** is simply where they
+are in that progression.
+
+This isn't specific to any one program. Every structured-phonics curriculum — UFLI,
+Fundations, SIPPS, CKLA, and the rest — teaches essentially the same code in nearly the same
+order: short vowels → blends & digraphs → silent-e → vowel teams → r-controlled →
+suffixes/prefixes → multisyllabic. The stages below are **labeled with UFLI's numbering**
+because UFLI Foundations publishes its scope and sequence openly and for free — it's a
+transparent, common map, grounded in the science of reading. A teacher who uses a different
+program maps their student to the nearest stage here; a teacher who only has a reading level
+uses that (decodability is then estimated, not exact — see below).
+
+The stages are **cumulative** — a student at a later stage can read everything from the
+earlier stages too.
 
 **How to use this:** map the student's level to a stage below, then treat the stage's
 DECODABLE list as your ceiling and its NOT-YET list as off-limits for *content* words.
