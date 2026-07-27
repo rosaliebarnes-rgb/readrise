@@ -2,10 +2,12 @@
 
 import { STAGES } from "@/lib/domain";
 
-/* UFLI Foundations — the University of Florida Literacy Institute's explicit,
-   systematic phonics program, grounded in the science of reading. Its scope and
-   sequence (what the stages below follow) is published free; the placement
-   assessment is a free PDF for pinning a student's exact stage. */
+/* Decoding stage = where a student is in the phonics scope & sequence. This is
+   program-agnostic — every structured-phonics curriculum (UFLI, Fundations,
+   SIPPS, CKLA…) teaches the same code in nearly the same order. The stages are
+   labeled with UFLI's numbering only because UFLI Foundations publishes its scope
+   & sequence openly and free; the placement assessment is a free PDF for an exact
+   stage. Don't imply a teacher must use UFLI — they don't. */
 const UFLI_SITE_URL = "https://ufli.education.ufl.edu/foundations/";
 const UFLI_ASSESSMENT_URL =
   "https://ufli.education.ufl.edu/wp-content/uploads/2025/08/UFLIAssessment_081025_v2.pdf";
@@ -17,8 +19,8 @@ const selectCls =
 
 /* Decoding stage as a dropdown (was a vertical ladder — dropped to reduce clutter).
    Stays unselected until the teacher picks one; choosing "No decoding stage set"
-   clears it. Each option carries its UFLI range + examples so the picker is still
-   self-explanatory. */
+   clears it. Each option leads with the stage + examples (the universal concept)
+   and shows the UFLI range as a reference. */
 export default function DecodingStagePicker({
   value,
   onChange,
@@ -32,16 +34,17 @@ export default function DecodingStagePicker({
         <option value="">No decoding stage set</option>
         {STAGES.map((s) => (
           <option key={s.id} value={s.id}>
-            {s.label} — {s.ufli} (e.g. {s.examples})
+            {s.label} — {s.examples} · {s.ufli}
           </option>
         ))}
       </select>
       <p className="mt-1.5 text-[11.5px] leading-snug text-ink-soft">
-        Stages follow the{" "}
+        Where a student sits in the phonics scope &amp; sequence — nearly the same across programs
+        (Fundations, SIPPS, CKLA…). The stages use{" "}
         <a href={UFLI_SITE_URL} target="_blank" rel="noopener noreferrer" className={linkCls}>
           UFLI Foundations
         </a>{" "}
-        scope &amp; sequence — a free, science-of-reading phonics progression. Not sure of a stage?{" "}
+        numbering because its scope &amp; sequence is published openly and free. Not sure of a stage?{" "}
         <a href={UFLI_ASSESSMENT_URL} target="_blank" rel="noopener noreferrer" className={linkCls}>
           Free placement test →
         </a>
