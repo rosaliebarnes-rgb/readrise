@@ -1,22 +1,24 @@
 "use client";
 
 import { CCSS, SKILLS } from "@/lib/domain";
-import type { SetConfig } from "@/lib/types";
 
 const inputCls =
   "w-full rounded-lg border border-hair bg-white px-3 py-2 text-[14px] text-ink placeholder:text-ink-soft/60 focus:border-pine";
 
-/* Shared "Align to a goal" control for class sets — Skill or Standard only (no
-   IEP goal on sets: a set serves a group, so nothing about one student is
-   collected). Used by both the Guided and Describe set panels so they can't
-   drift. When set, the resolved goal drives the comprehension-question frames on
-   every text in the set (via comprehensionLogic in the set-text prompt). */
+/* Just the goal fields — structural, so any config that carries them (SetConfig,
+   RosterConfig) can use this picker. */
+export type GroupGoal = { goalMode: "skill" | "standard"; skillChips: string[]; ccss: string };
+
+/* Shared "Align to a goal" control for groups — Skill or Standard only (no IEP
+   goal: a group artifact collects nothing about one student). Used by the Guided
+   and Describe set panels AND the roster so they can't drift. When set, the
+   resolved goal drives the comprehension-question frames (via comprehensionLogic). */
 export default function SetGoalPicker({
   cfg,
   onChange,
 }: {
-  cfg: SetConfig;
-  onChange: (patch: Partial<SetConfig>) => void;
+  cfg: GroupGoal;
+  onChange: (patch: Partial<GroupGoal>) => void;
 }) {
   return (
     <div className="mt-4">
