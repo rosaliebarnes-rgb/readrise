@@ -65,7 +65,6 @@ export interface SetConfig {
   /* Per-text options. The teacher composes the group work from these — the tool
      doesn't prescribe a group routine. */
   comprehension: boolean;
-  summary: boolean; // a summary task on each text
   vocabDefs: boolean; // define the shared words as used in THIS text
   notes: string; // free-text / dictated steering for the whole set (subordinate)
 }

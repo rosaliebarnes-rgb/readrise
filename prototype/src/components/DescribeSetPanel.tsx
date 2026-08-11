@@ -233,9 +233,8 @@ export default function DescribeSetPanel({
           {(
             [
               ["comprehension", "Comprehension questions"],
-              ["summary", "Summary — write a summary of this text"],
               ["vocabDefs", "Vocabulary — define the shared words as used in this text"],
-            ] as ["comprehension" | "summary" | "vocabDefs", string][]
+            ] as ["comprehension" | "vocabDefs", string][]
           ).map(([k, lbl]) => (
             <label key={k} className="flex items-start gap-2.5 text-[13.5px] text-ink">
               <input

@@ -138,7 +138,6 @@ export default function Home() {
     skillChips: [],
     ccss: "",
     comprehension: true,
-    summary: false,
     vocabDefs: false,
     notes: "",
   });

@@ -112,7 +112,7 @@ function comprehensionLogic(goalText: string): string {
   if (has("evidence") || has("cite"))
     return `Write find-the-evidence questions. Begin the section with ONE line that starts "DIRECTIONS:" telling the student they can copy the exact words from the text or write them in their own words — say this ONCE, here, not in each question. Then write the numbered questions, and VARY how each one asks: e.g. "Find the sentence that shows…", "Which line tells you…", "Copy the words that prove…", "Where does the text say…", "What line makes you think…". Each question points the student to a specific place in the text. Never repeat the same wording twice.`;
   if (has("main idea") || has("central idea") || has("theme") || has("summar"))
-    return `Ask the reader to identify the central idea, distinguish it from supporting details, and write a one-sentence summary.`;
+    return `Ask the reader to identify the main idea (what the whole text is mostly about) and distinguish it from the supporting details. This is identifying the main idea, NOT writing a summary of the text.`;
   if (has("analyze") || has("connect") || has("develop") || has("interact") || has("point of view"))
     return `Ask the reader to trace how specific individuals, events, or ideas in the text are connected to each other.`;
   if (has("argument") || has("claim") || has("evaluate"))

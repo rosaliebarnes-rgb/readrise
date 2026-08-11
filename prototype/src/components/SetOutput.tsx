@@ -5,7 +5,7 @@ import { splitTitle } from "@/lib/parse";
 import { packHtml, packetText } from "@/lib/packet";
 import { readingStyle, type ReaderSettings } from "@/lib/reader";
 import type { SetConfig, SetPlan, SetTextResult } from "@/lib/types";
-import { Paragraph, Questions, Rule, SectionLabel } from "./TextRender";
+import { Paragraph, Questions, SectionLabel } from "./TextRender";
 import ReaderControls from "./ReaderControls";
 
 function VocabSpine({ vocab }: { vocab: string[] }) {
@@ -114,19 +114,6 @@ function VocabDefs({ vocab }: { vocab: string[] }) {
           </div>
         ))}
       </div>
-    </>
-  );
-}
-
-function SummaryTask() {
-  return (
-    <>
-      <SectionLabel>Summary</SectionLabel>
-      <p className="mb-1 text-[15px]">Write a summary of this text in your own words.</p>
-      <Rule />
-      <Rule />
-      <Rule />
-      <Rule />
     </>
   );
 }
@@ -245,7 +232,6 @@ function Pack({
 
       {cur.parsed.comprehension && <Questions block={cur.parsed.comprehension} label="Comprehension" />}
       {cfg.vocabDefs && <VocabDefs vocab={plan.vocab} />}
-      {cfg.summary && <SummaryTask />}
     </div>
   );
 }
