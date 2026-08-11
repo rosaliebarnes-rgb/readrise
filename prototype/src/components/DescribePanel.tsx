@@ -158,7 +158,7 @@ export default function DescribePanel({
 
       <button
         type="button"
-        onClick={onGenerate}
+        onClick={() => onGenerate()}
         disabled={busy || !text.trim()}
         className="mt-6 w-full rounded-lg bg-pine py-3 text-[15px] font-semibold text-white shadow-sm hover:brightness-110 disabled:opacity-60"
       >

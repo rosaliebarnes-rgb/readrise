@@ -278,7 +278,8 @@ export default function Home() {
   // Describe mode. A fresh gen sends just the description; a refine also sends the
   // change + the current output, so the model keeps what works and edits the rest.
   async function generateDescribe(refine?: string) {
-    const isRefine = !!refine?.trim() && !!parsed;
+    // Guard: the Generate button passes a click event here; only a real string is a refine.
+    const isRefine = typeof refine === "string" && !!refine.trim() && !!parsed;
     setBusy(true);
     setError(null);
     if (!isRefine) setParsed(null);
